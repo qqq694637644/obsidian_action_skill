@@ -1,14 +1,16 @@
-# Skill Temple
+# Obsidian Action Skill
 
-Skill Temple 把 Codex 的 Skill 思路适配到 Custom GPT Actions：
+本仓库基于 Skill Temple，把 Codex 的 Skill 思路适配到面向 Obsidian 个人知识管理的 Custom GPT Actions：
 
 1. 构建时把每个 Skill 的 `name + description + skill_id` 编译进 GPT Instructions。
 2. 模型在初始上下文中看到 Skill 目录，自行选择需要的 Skill。
 3. 选中后调用 `loadSkills`，只加载对应的完整 `SKILL.md`。
 4. `SKILL.md` 引用的其他文件再通过 `readSkillContent` 按需读取。
-5. 实际项目读取、修改和命令执行由 Workspace Actions 完成。
+5. 实际 vault 读取、修改和必要命令执行由 Workspace Actions 完成。
 
 不会把所有 Skill 正文静态塞进 prompt，也不需要先调用 Action 查询目录。
+
+`GPT_ACTION_PROMPT.md` 的默认目标是“记得进去、找得回来、维护够轻”。它要求 GPT 保留现有结构、先搜索再写入、优先局部追加，并避免为了知识图谱感批量加链接或重写旧笔记。
 
 ## 公开 Actions
 
@@ -27,25 +29,23 @@ Skill Temple 把 Codex 的 Skill 思路适配到 Custom GPT Actions：
 
 ```text
 skills/
-  api-review/
+  obsidian-note-router/
     SKILL.md
-    docs/
-      openapi.md
-    scripts/
-      helper.py
+    references/
+      routing-matrix.md
 ```
 
 `SKILL.md` 必须包含 frontmatter：
 
 ```markdown
 ---
-name: api-review
-description: Review API schemas, compatibility, and migration risks.
+name: obsidian-note-router
+description: Route new information or edit requests to the right Obsidian note.
 ---
 
-# API review
+# Obsidian Note Router
 
-Read `docs/openapi.md` when the task involves OpenAPI compatibility.
+Read `references/routing-matrix.md` when choosing between updating and creating notes.
 ```
 
 `name` 同时作为稳定的 `skill_id`。详细资料放在 `docs/`、`references/`、`scripts/` 或 `assets/`，并从 `SKILL.md` 中明确引用。
@@ -73,8 +73,8 @@ dist/GPT_INSTRUCTIONS.md
 生成器会把当前所有 Skill 的元数据替换进模板：
 
 ```text
-- api-review: Review API schemas, compatibility, and migration risks. (skill_id: api-review)
-- release-notes: Draft release notes from repository changes. (skill_id: release-notes)
+- obsidian-note-router: Route new information to the right note. (skill_id: obsidian-note-router)
+- obsidian-vault-governance: Govern vault architecture and conventions. (skill_id: obsidian-vault-governance)
 ```
 
 把生成文件复制到 Custom GPT 的 Instructions。Skill 增删或 description 修改后重新生成即可。
@@ -127,7 +127,7 @@ skill-temple-build-openapi `
 
 ```json
 {
-  "skill_ids": ["api-review"]
+  "skill_ids": ["obsidian-note-router"]
 }
 ```
 
@@ -135,8 +135,8 @@ skill-temple-build-openapi `
 
 ```xml
 <skill>
-<name>api-review</name>
-<path>api-review/SKILL.md</path>
+<name>obsidian-note-router</name>
+<path>obsidian-note-router/SKILL.md</path>
 完整 SKILL.md 内容
 </skill>
 ```
@@ -147,8 +147,8 @@ skill-temple-build-openapi `
 
 ```json
 {
-  "skill_id": "api-review",
-  "path": "docs/openapi.md",
+  "skill_id": "obsidian-note-router",
+  "path": "references/routing-matrix.md",
   "start_line": 1,
   "max_lines": 300
 }
@@ -229,7 +229,7 @@ skill-temple-eval evals/skill_queries.jsonl
 JSONL 示例：
 
 ```json
-{"id":"api-review","query":"review API compatibility","expected_skill":"api-review","expected_paths":["docs/openapi.md"],"expected_symbols":["breaking change"]}
+{"id":"obsidian-note-router-routing","query":"判断一条会议记录该追加还是新建","expected_skill":"obsidian-note-router","expected_paths":["references/routing-matrix.md"],"expected_symbols":["单次会议纪要"]}
 ```
 
 当前架构由模型根据静态目录选择 Skill，因此该工具不模拟服务端语义路由，只检查被选 Skill 的加载链路和引用资料是否完整。

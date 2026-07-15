@@ -1,7 +1,7 @@
 [project]
 name = "skill-temple"
 version = "0.3.1"
-description = "Codex-style compiled Skill catalogs for Custom GPT Actions"
+description = "Obsidian personal knowledge management Skills for Custom GPT Actions"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -42,7 +42,11 @@ where = ["src"]
 [tool.setuptools.package-data]
 skill_temple = [
     "example_skills/*/*.md",
-    "example_skills/*/docs/*.md",
+    "example_skills/*/docs/*",
+    "example_skills/*/references/*",
+    "example_skills/*/scripts/*",
+    "example_skills/*/assets/*",
+    "example_skills/*/agents/*.yaml",
 ]
 
 [tool.pytest.ini_options]

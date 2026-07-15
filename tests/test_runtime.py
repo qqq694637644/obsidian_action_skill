@@ -56,7 +56,9 @@ class RuntimeTests(unittest.TestCase):
     def test_packaged_example_is_discovered(self) -> None:
         runtime = load_runtime()
         skills = runtime.list_skills()["skills"]
-        example = next(item for item in skills if item["skill_id"] == "idapython")
+        example = next(
+            item for item in skills if item["skill_id"] == "obsidian-note-router"
+        )
         self.assertEqual(example["entrypoint"], "SKILL.md")
         self.assertTrue(example["content_hash"].startswith("sha256:"))
 
@@ -189,6 +191,24 @@ class RuntimeTests(unittest.TestCase):
             self.assertIn("skill_id: alpha", text)
             self.assertNotIn("SECRET BODY", text)
 
+    def test_repository_prompt_builds_for_obsidian_personal_knowledge_management(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output = Path(temp_dir) / "GPT_INSTRUCTIONS.md"
+            built = build_instructions(
+                runtime=load_runtime(),
+                template_path=Path("GPT_ACTION_PROMPT.md"),
+                output_path=output,
+            )
+            text = built.read_text(encoding="utf-8")
+
+        self.assertNotIn("{{SKILL_CATALOG}}", text)
+        self.assertIn("Obsidian 个人知识管理助手", text)
+        self.assertIn("记得进去", text)
+        self.assertIn("找得回来", text)
+        self.assertIn("维护够轻", text)
+        self.assertIn("skill_id: obsidian-note-router", text)
+        self.assertIn("skill_id: obsidian-vault-governance", text)
+
     def test_prompt_builder_requires_placeholder(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp = Path(temp_dir)
@@ -238,20 +258,26 @@ class RuntimeTests(unittest.TestCase):
                 "x-forwarded-host": "skills.example.com",
             },
         )
-        loaded = client.post("/v1/skills/load", json={"skill_ids": ["idapython"]})
+        loaded = client.post(
+            "/v1/skills/load", json={"skill_ids": ["obsidian-note-router"]}
+        )
         read = client.post(
             "/v1/skills/read",
-            json={"skill_id": "idapython", "path": "SKILL.md", "max_lines": 5},
+            json={
+                "skill_id": "obsidian-note-router",
+                "path": "SKILL.md",
+                "max_lines": 5,
+            },
         )
         missing = client.post("/v1/skills/load", json={"skill_ids": ["missing"]})
         unsafe = client.post(
             "/v1/skills/read",
-            json={"skill_id": "idapython", "path": "../README.md"},
+            json={"skill_id": "obsidian-note-router", "path": "../README.md"},
         )
 
         self.assertEqual(schema.json()["servers"], [{"url": "https://skills.example.com"}])
         self.assertEqual(loaded.status_code, 200)
-        self.assertEqual(loaded.json()["loaded_skill_ids"], ["idapython"])
+        self.assertEqual(loaded.json()["loaded_skill_ids"], ["obsidian-note-router"])
         self.assertEqual(read.status_code, 200)
         self.assertEqual(missing.status_code, 404)
         self.assertEqual(missing.json()["detail"]["error"]["code"], "skill_not_found")
@@ -267,19 +293,19 @@ class RuntimeTests(unittest.TestCase):
             client = TestClient(create_app())
             console = client.get("/console")
             unauthorized = client.post(
-                "/v1/skills/load", json={"skill_ids": ["idapython"]}
+                "/v1/skills/load", json={"skill_ids": ["obsidian-note-router"]}
             )
             console_unauthorized = client.post(
-                "/console/load", json={"skill_ids": ["idapython"]}
+                "/console/load", json={"skill_ids": ["obsidian-note-router"]}
             )
             authorized = client.post(
                 "/v1/skills/load",
-                json={"skill_ids": ["idapython"]},
+                json={"skill_ids": ["obsidian-note-router"]},
                 headers={"Authorization": "Bearer secret-token"},
             )
             console_authorized = client.post(
                 "/console/read",
-                json={"skill_id": "idapython", "path": "SKILL.md"},
+                json={"skill_id": "obsidian-note-router", "path": "SKILL.md"},
                 headers={"Authorization": "Bearer secret-token"},
             )
             schema = client.get("/openapi.json").json()
