@@ -1,0 +1,3 @@
+interface:
+  display_name: "Obsidian Consistency Audit"
+  short_description: "audit vault drift, duplication, and ai-generated noise without blind edits"
