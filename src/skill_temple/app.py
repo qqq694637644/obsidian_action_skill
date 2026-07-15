@@ -318,11 +318,11 @@ CONSOLE_HTML = """<!doctype html>
   <label for="token">Bearer token</label>
   <input id="token" type="password" placeholder="Optional token from .env" />
   <label for="skill_ids">Skill ids, comma-separated</label>
-  <input id="skill_ids" value="idapython" />
+  <input id="skill_ids" value="obsidian-note-router" />
   <div class="row">
     <div>
       <label for="read_skill_id">Read skill id</label>
-      <input id="read_skill_id" value="idapython" />
+      <input id="read_skill_id" value="obsidian-note-router" />
     </div>
     <div>
       <label for="read_path">Relative path</label>

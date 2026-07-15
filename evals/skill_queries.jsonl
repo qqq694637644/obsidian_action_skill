@@ -1,2 +1,2 @@
-{"id":"idapython-xrefs","query":"load idapython and find the XrefsTo reference","expected_skill":"idapython","expected_paths":["docs/idautils.md"],"expected_symbols":["XrefsTo"]}
-{"id":"idapython-ctree","query":"load idapython and find ctree_visitor_t and cot_call","expected_skill":"idapython","expected_paths":["docs/ida_hexrays.md"],"expected_symbols":["ctree_visitor_t","cot_call"]}
+{"id":"obsidian-note-router-routing","query":"把一条会议记录放进个人 Obsidian，并判断追加还是新建","expected_skill":"obsidian-note-router","expected_paths":["references/routing-matrix.md"],"expected_symbols":["单次会议纪要","meeting note","追加 vs 新建"]}
+{"id":"obsidian-vault-governance-boundaries","query":"规划文件夹、属性、Bases 与 Canvas 的职责边界","expected_skill":"obsidian-vault-governance","expected_paths":["references/feature-boundaries.md"],"expected_symbols":["Markdown note","Bases","唯一事实来源"]}
