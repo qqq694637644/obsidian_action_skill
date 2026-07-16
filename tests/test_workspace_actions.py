@@ -223,6 +223,51 @@ class WorkspaceActionsTests(unittest.TestCase):
             self.assertEqual(deleted.status_code, 200, deleted.text)
             self.assertFalse((root / "beta.txt").exists())
 
+    def test_apply_patch_preserves_crlf_and_reports_only_changed_lines(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            target = root / "alpha.txt"
+            original = b"one\r\ntwo\r\nthree\r\n"
+            target.write_bytes(original)
+            client = self._client(root)
+            patch_text = """*** Begin Patch
+*** Update File: alpha.txt
+@@
+ one
+-two
++changed
+ three
+*** End Patch
+"""
+
+            dry_run = client.post(
+                "/v1/workspace/apply-patch",
+                json={"patch": patch_text, "dry_run": True},
+            )
+            self.assertEqual(dry_run.status_code, 200, dry_run.text)
+            self.assertFalse(dry_run.json()["applied"])
+            self.assertEqual(target.read_bytes(), original)
+            self.assertEqual(
+                dry_run.json()["changed_files"][0],
+                {
+                    "path": "alpha.txt",
+                    "operation": "modified",
+                    "status": None,
+                    "previous_path": None,
+                    "additions": 1,
+                    "deletions": 1,
+                },
+            )
+
+            applied = client.post("/v1/workspace/apply-patch", json={"patch": patch_text})
+            self.assertEqual(applied.status_code, 200, applied.text)
+            self.assertEqual(target.read_bytes(), b"one\r\nchanged\r\nthree\r\n")
+            self.assertEqual(
+                applied.json()["diff_stat"],
+                "alpha.txt | +1 -1 (modified)\n"
+                "1 file(s) changed, 1 insertion(s), 1 deletion(s)",
+            )
+
     @unittest.skipUnless(shutil.which("pwsh"), "PowerShell 7 is required")
     def test_command_start_get_logs_list_timeout_and_cancel(self) -> None:
         with tempfile.TemporaryDirectory() as temp, tempfile.TemporaryDirectory() as operations:
