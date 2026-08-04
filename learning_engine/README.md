@@ -47,9 +47,9 @@ python cockpit_app.py            # open the private local GUI
 
 This engine is integrated with the repository's GPT Action gateway. From the
 repository root, install and start the gateway, set `WORKSPACE_ROOT` to
-`learning_engine/`, and leave the default Skill roots enabled. The gateway then
-loads the original `knowledge-graph`, `error-triage`, and `vault-maintenance`
-Skills directly from `vault/.claude/skills/`.
+your personal Workspace, and leave the bundled Skill directory enabled. The gateway
+compiles `knowledge-graph`, `error-triage`, and `vault-maintenance` metadata into
+GPT Instructions and loads each full Skill only when the request matches it.
 
 Open the `vault/` folder in Obsidian, install the **Dataview** community plugin when
 prompted, and read `START_HERE.md`. The Vault is intentionally clean: no demo
@@ -93,8 +93,9 @@ To install the same cockpit across different subject vaults, see
 
 Start with `docs/01-architecture.md`, then use
 [`docs/09-course-overlays-and-learning-guide.md`](docs/09-course-overlays-and-learning-guide.md)
-for the actual daily loop and multi-course design. You can also hand `vault/AGENTS.md`
-to your AI agent.
+for the actual daily loop and multi-course design. Agent behavior is defined by the
+gateway's compiled root prompt and the bundled on-demand Skills, not by a second
+prompt inside the personal Vault.
 Ideas on the roadmap (and honest analyses of rejected ones, like two-way Anki sync):
 [FUTURE_IMPROVEMENTS.md](FUTURE_IMPROVEMENTS.md).
 

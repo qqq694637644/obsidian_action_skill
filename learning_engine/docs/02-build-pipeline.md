@@ -1,9 +1,9 @@
 # 02 — Build Pipeline (curriculum → knowledge graph)
 
 The six-phase pipeline that turns any curriculum source into a working vault.
-This is the spine of the whole system; it is written to be executed by an AI agent
-(the shipped `vault/.claude/skills/knowledge-graph` skill is the agent-facing version
-of this document) but every phase has a manual fallback.
+This is the spine of the whole system; it is written to be executed by an AI agent.
+The bundled `knowledge-graph` Skill is the concise agent-facing workflow, while this
+document is the long-form handbook. Every phase also has a manual fallback.
 
 ```
 1 EXTRACT   curriculum source → JSON {domain, topic, id, name, subskills[]}

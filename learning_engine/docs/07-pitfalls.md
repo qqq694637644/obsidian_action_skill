@@ -100,9 +100,9 @@ time each one cost.
     index file. Process small batches (<15 skills) inline; reserve agents for 30–40.
 27. **Merge+apply after every wave.** Waiting until the end means one bad wave
     poisons everything and you can't tell which.
-28. **Keep the docs in sync with the code.** Every new CLI flag or daemon behavior
-    updates the operator doc (AGENTS.md) in the same change — a stale briefing makes
-    the next agent (or future you) rebuild instead of extend.
+28. **Keep Skills and docs in sync with the code.** Every new CLI flag or engine
+    behavior updates the relevant bundled Skill and handbook page in the same change.
+    Do not add a second agent prompt inside the personal Vault.
 29. **Counts drift; methodology doesn't.** Any absolute number in a doc ("108 files
     with 0 subskills") is stale the week after. Record the check command, not just
     its output.

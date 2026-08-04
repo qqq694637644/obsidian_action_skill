@@ -33,7 +33,8 @@ Run the gateway from the repository root with:
 WORKSPACE_ROOT=C:/path/to/obsidian_action_skill/learning_engine
 ```
 
-The gateway loads the original learning Skills directly:
+The gateway includes the learning Skills in its bundled Skill directory and compiles
+their metadata into GPT Instructions:
 
 - `knowledge-graph`
 - `error-triage`

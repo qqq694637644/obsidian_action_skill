@@ -8,11 +8,11 @@
 4. `SKILL.md` 引用的其他文件再通过 `readSkillContent` 按需读取。
 5. 实际 vault 读取、修改和必要命令执行由 Workspace Actions 完成。
 
-仓库现在同时包含 `learning_engine/`：原 `obsidian-learning-engine` 的完整知识图谱、FSRS、FIRe、错题诊断、学习 Cockpit 和示例 vault。它原有的 `knowledge-graph`、`error-triage`、`vault-maintenance` Skills 会与通用 Obsidian Skills 一起由同一个 Action 网关加载。
+仓库同时包含 `learning_engine/`：原 `obsidian-learning-engine` 的知识图谱、FSRS、FIRe、错题诊断、Learning Cockpit 和干净 Vault 模板。`knowledge-graph`、`error-triage`、`vault-maintenance` 已迁入网关的正式 Skill 目录，与通用 Obsidian Skills 一起编译和按需加载。
 
 不会把所有 Skill 正文静态塞进 prompt，也不需要先调用 Action 查询目录。
 
-`GPT_ACTION_PROMPT.md` 的默认目标是“记得进去、找得回来、维护够轻”。它要求 GPT 保留现有结构、先搜索再写入、优先局部追加，并避免为了知识图谱感批量加链接或重写旧笔记。
+`GPT_ACTION_PROMPT.md` 只保留身份、授权边界、Skill 加载协议、Workspace 工具可靠性和完成标准。笔记路由、Vault 治理、学习图谱、错题和 FSRS/FIRe 流程全部由对应 Skill 按需提供，避免主提示词和 Skill 重复。
 
 ## 公开 Actions
 
@@ -31,24 +31,21 @@
 
 ```text
 obsidian_action_skill/
-├─ src/skill_temple/                 GPT Action 网关与通用 Obsidian Skills
+├─ src/skill_temple/
+│  ├─ example_skills/                全部内置 Skills（通用 Obsidian + Learning）
+│  └─ ...                            GPT Action 网关
 ├─ learning_engine/
 │  ├─ docs/                          学习引擎手册
 │  ├─ automation/                    可选自动化
 │  └─ vault/
-│     ├─ .claude/skills/             原有学习 Skills
 │     ├─ .engine/                     prerequisite edge store
-│     ├─ .obsidian/                   示例 vault 配置与 SRS 状态
+│     ├─ .obsidian/                   干净 Vault 配置与个人 SRS 状态
 │     └─ *.py                         FSRS/FIRe/诊断/Cockpit
 └─ GPT_ACTION_PROMPT.md
 ```
 
-默认从源码仓库运行时，运行时会合并加载：
-
-1. `src/skill_temple/example_skills/`
-2. `learning_engine/vault/.claude/skills/`
-
-因此不需要复制或重写学习 Skills。
+默认从 `src/skill_temple/example_skills/` 发现全部内置 Skills。个人 Vault 不包含
+`AGENTS.md`、`CLAUDE.md` 或 `.claude/skills`，避免形成第二套提示词。
 
 ## Skill 目录格式
 
@@ -86,7 +83,7 @@ Read `references/routing-matrix.md` when choosing between updating and creating 
 安装后运行：
 
 ```powershell
-skill-temple-build-prompt --skills-dir C:/path/to/skills
+skill-temple-build-prompt
 ```
 
 默认输出：
@@ -104,14 +101,15 @@ dist/GPT_INSTRUCTIONS.md
 
 把生成文件复制到 Custom GPT 的 Instructions。Skill 增删或 description 修改后重新生成即可。
 
-也可以指定输入输出：
+也可以指定模板和输出：
 
 ```powershell
 skill-temple-build-prompt `
-  --skills-dir C:/path/to/skills `
   --template GPT_ACTION_PROMPT.md `
   --output dist/GPT_INSTRUCTIONS.md
 ```
+
+`--skills-dir` 只在你明确要用一个自定义 Skill 根替换默认内置目录时使用。
 
 ## 生成 `openapi.json`
 
@@ -187,12 +185,12 @@ skill-temple-build-openapi `
 
 ```dotenv
 SKILL_TEMPLE_SERVER_URL=https://skills.example.com
-# 默认留空：加载内置 Obsidian Skills 和仓库内 Learning Engine Skills
+# 默认留空：加载内置 Obsidian 与 Learning Skills
 # SKILL_TEMPLE_SKILLS_DIR=C:/path/to/custom/skills
 # 多根目录可使用 SKILL_TEMPLE_SKILLS_DIRS（Windows 用 ; 分隔）
 SKILL_TEMPLE_BEARER_TOKEN=replace-with-a-long-random-secret
 SKILL_TEMPLE_OPENAPI_OUTPUT=openapi.json
-WORKSPACE_ROOT=C:/path/to/obsidian_action_skill/learning_engine
+WORKSPACE_ROOT=C:/path/to/personal-workspace
 WORKSPACE_PWSH_PATH=pwsh
 WORKSPACE_OPERATION_ROOT=C:/path/to/obsidian_action_skill/.runtime/workspace-operations
 WORKSPACE_ALLOW_NETWORK=false
@@ -202,15 +200,15 @@ WORKSPACE_COMMAND_OUTPUT_BYTES=1000000
 WORKSPACE_COMMAND_MAX_OUTPUT_BYTES=10000000
 ```
 
-Skill 目录查找顺序：
+Skill 根目录解析顺序：
 
 1. 命令行或 `create_app(skills_dir=...)`
-2. `SKILL_TEMPLE_SKILLS_DIR`
-3. 当前目录 `.env`
+2. 环境变量或当前目录 `.env` 中的 `SKILL_TEMPLE_SKILLS_DIRS`
+3. 环境变量或当前目录 `.env` 中的 `SKILL_TEMPLE_SKILLS_DIR`
 4. 当前目录的 `skills/`
-5. 包内示例 Skill；从本仓库源码运行时，同时加载 `learning_engine/vault/.claude/skills`
+5. 安装包内 `example_skills/` 中的全部内置 Obsidian 与 Learning Skills
 
-`SKILL_TEMPLE_SKILLS_DIRS` 可显式配置多个根目录；一旦设置，它优先于单目录配置。
+`SKILL_TEMPLE_SKILLS_DIRS` 可显式配置多个根目录；一旦设置，它取代默认内置目录。
 
 设置 `SKILL_TEMPLE_BEARER_TOKEN` 后，所有 `/v1/*` 接口以及控制台的加载、读取请求都要求：
 

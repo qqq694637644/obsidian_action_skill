@@ -1,8 +1,8 @@
 # TMUA Vault Case Study — Building from exam specification PDF
 
-**Vault**: a sibling vault built alongside the maths reference vault
-**Subject**: Test of Mathematics for University Admission (TMUA)
-**Size**: 91 skill nodes, 321 subskills, 117 prerequisite edges, 315 official past-paper questions + 58 supplementary questions
+**Vault**: a sibling vault built alongside the maths reference vault  
+**Subject**: Test of Mathematics for University Admission (TMUA)  
+**Size**: 91 skill nodes, 321 subskills, 117 prerequisite edges, 315 official past-paper questions + 58 supplementary questions  
 **Source**: UAT-UK official specification PDF + Notes on Mathematics (PDF) + Notes on Logic and Proof (PDF)
 
 ---
@@ -110,6 +110,7 @@ Output formats: compact CLI, markdown, or full bank file.
 | `morning.py` | Daily entrypoint | Generic study session starter |
 
 ## Hard constraints from this build
+
 - The `domain:` field is required in frontmatter (engine scripts depend on it) but
   was omitted in the first generator version — add it explicitly.
 - Console codepage cp932: print non-ASCII fails. Escape `£`, `π`, superscripts,

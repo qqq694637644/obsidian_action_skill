@@ -52,6 +52,13 @@ class CleanVaultTests(unittest.TestCase):
             with self.subTest(relative=relative):
                 self.assertTrue((VAULT / relative).is_file())
 
+    def test_vault_contains_no_legacy_agent_prompt_layer(self):
+        self.assertFalse((VAULT / "AGENTS.md").exists())
+        self.assertFalse((VAULT / "CLAUDE.md").exists())
+        legacy_root = VAULT / ".claude"
+        legacy_files = list(legacy_root.rglob("*")) if legacy_root.exists() else []
+        self.assertEqual([path for path in legacy_files if path.is_file()], [])
+
 
 if __name__ == "__main__":
     unittest.main()

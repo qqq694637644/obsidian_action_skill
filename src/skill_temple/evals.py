@@ -54,7 +54,7 @@ def evaluate_case(case: dict[str, Any], skills_dir: Path | None = None) -> dict[
 
     expected_symbols = {str(symbol) for symbol in case.get("expected_symbols", [])}
     searchable_paths = expected_paths or sorted(referenced_paths)
-    combined_text_parts: list[str] = []
+    combined_text_parts: list[str] = [str(packet.get("content", ""))]
     unreadable_paths: list[str] = []
     for path in searchable_paths:
         try:

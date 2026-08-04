@@ -72,13 +72,7 @@ def _resolve_skills_dirs(skills_dir: str | Path | None) -> list[Path]:
         return [local.resolve()]
 
     with resources.as_file(resources.files("skill_temple") / "example_skills") as path:
-        roots = [path.resolve()]
-
-    repository_root = Path(__file__).resolve().parents[2]
-    learning_skills = repository_root / "learning_engine" / "vault" / ".claude" / "skills"
-    if learning_skills.is_dir():
-        roots.append(learning_skills.resolve())
-    return roots
+        return [path.resolve()]
 
 
 def env_value_from_environment_or_dotenv(name: str) -> str | None:

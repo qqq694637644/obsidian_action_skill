@@ -9,11 +9,10 @@ prerequisite hides its dependents). For flat domains (vocabulary, definitions),
 Anki — or this repo's SRS half without the graph — is genuinely enough.
 
 **Do I need Claude / a specific AI?**
-No. The docs and shipped skills are written agent-agnostically: any agent that can
-read files and run Python can execute the build (`vault/AGENTS.md` is the entry
-point; `.claude/skills/` are markdown instructions any agent can follow). The engine
-itself never calls an AI. AI is used at build time (note generation, edge mining,
-question tagging) and optionally for error triage.
+No. The engine itself never calls an AI. In this repository, the Action gateway
+compiles Skill metadata into GPT Instructions and GPT loads a full bundled Skill only
+when the request matches it. AI is used for note generation, edge mining, question
+tagging, and optional error analysis; the Python learning engine remains local.
 
 **What does it cost to build a subject?**
 The reference build mined ~1,500 edges and tagged ~2,000 past-paper questions on a

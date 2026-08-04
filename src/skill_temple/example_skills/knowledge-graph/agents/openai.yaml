@@ -1,0 +1,3 @@
+interface:
+  display_name: "Learning Knowledge Graph"
+  short_description: "build and validate learnable skill graphs in the personal Vault"

@@ -1,0 +1,3 @@
+interface:
+  display_name: "Learning Error Triage"
+  short_description: "capture mistakes and diagnose learning gaps"

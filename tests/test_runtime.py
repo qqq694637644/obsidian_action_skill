@@ -65,6 +65,8 @@ class RuntimeTests(unittest.TestCase):
         self.assertTrue(
             {"knowledge-graph", "error-triage", "vault-maintenance"}.issubset(skill_ids)
         )
+        self.assertEqual(len(runtime.skill_dirs), 1)
+        self.assertNotIn(".claude", str(runtime.skill_dirs[0]))
 
     def test_runtime_combines_multiple_skill_directories(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -214,7 +216,7 @@ class RuntimeTests(unittest.TestCase):
             self.assertIn("skill_id: alpha", text)
             self.assertNotIn("SECRET BODY", text)
 
-    def test_repository_prompt_builds_for_obsidian_personal_knowledge_management(self) -> None:
+    def test_repository_prompt_builds_for_skill_routed_workspace_agent(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             output = Path(temp_dir) / "GPT_INSTRUCTIONS.md"
             built = build_instructions(
@@ -225,15 +227,19 @@ class RuntimeTests(unittest.TestCase):
             text = built.read_text(encoding="utf-8")
 
         self.assertNotIn("{{SKILL_CATALOG}}", text)
-        self.assertIn("Obsidian 个人知识管理助手", text)
+        self.assertIn("Obsidian 工作区助手", text)
         self.assertIn("记得进去", text)
         self.assertIn("找得回来", text)
         self.assertIn("维护够轻", text)
+        self.assertIn("主动调用 `loadSkills`", text)
+        self.assertIn("<skill_catalog>", text)
         self.assertIn("skill_id: obsidian-note-router", text)
         self.assertIn("skill_id: obsidian-vault-governance", text)
         self.assertIn("skill_id: knowledge-graph", text)
         self.assertIn("skill_id: error-triage", text)
         self.assertIn("skill_id: vault-maintenance", text)
+        self.assertNotIn("### Skill 路由", text)
+        self.assertNotIn("AGENTS.md", text)
 
     def test_prompt_builder_requires_placeholder(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
