@@ -44,7 +44,7 @@ def node_names() -> dict[int, str]:
     out = {}
     for path in VAULT.glob("[0-9]* - *.md"):
         match = re.match(r"(\d+) - (.*)\.md$", path.name)
-        if match:
+        if match and int(match.group(1)) > 0:
             out[int(match.group(1))] = match.group(2)
     return out
 

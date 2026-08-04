@@ -27,10 +27,10 @@ GOTCHAS (see references/catchup-unlock-strategy.md):
 
 Usage (run from the vault root):
   python scripts/unlock_priority.py
-  python scripts/unlock_priority.py --frontier          # A-Level IDs 130-720 only
+  python scripts/unlock_priority.py --id-min 100 --id-max 999
   python scripts/unlock_priority.py --top 30
   python scripts/unlock_priority.py --decayed           # decayed-aware learn-new ranking
-  python scripts/unlock_priority.py --decayed --as-of 2026-07-09
+  python scripts/unlock_priority.py --decayed --as-of 2026-08-04
 """
 import sys
 if hasattr(sys.stdout, "reconfigure"):
@@ -68,7 +68,7 @@ def load_graph(vault):
     ids, mastery, prereqs = {}, {}, defaultdict(list)
     for fp in glob.glob(os.path.join(vault, "*.md")):
         m = re.match(r'^(\d+)\s*-', os.path.basename(fp))
-        if not m:
+        if not m or int(m.group(1)) <= 0:
             continue
         eid = int(m.group(1))
         ids[eid] = os.path.basename(fp)[:-3]
@@ -132,10 +132,12 @@ def nm(ids, eid):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("vault", nargs="?", default=None)
-    ap.add_argument("--frontier", action="store_true", help="restrict to A-Level IDs 130-720")
+    ap.add_argument("--id-min", type=int, default=None, help="optional minimum skill ID")
+    ap.add_argument("--id-max", type=int, default=None, help="optional maximum skill ID")
     ap.add_argument("--top", type=int, default=20)
     ap.add_argument("--decayed", action="store_true", help="decayed-aware learn-new ranking")
-    ap.add_argument("--as-of", default="2026-07-09", help="YYYY-MM-DD for decayed calc")
+    ap.add_argument("--as-of", default=datetime.now().strftime("%Y-%m-%d"),
+                    help="YYYY-MM-DD for decayed calculation")
     args = ap.parse_args()
 
     vault = args.vault or find_vault(os.getcwd())
@@ -146,7 +148,9 @@ def main():
     def in_scope(eid):
         if done(eid):
             return False
-        if args.frontier and not (130 <= eid <= 720):
+        if args.id_min is not None and eid < args.id_min:
+            return False
+        if args.id_max is not None and eid > args.id_max:
             return False
         return True
 
@@ -169,7 +173,8 @@ def main():
         if len(missing) == 1:
             fully[missing[0]].append(eid)
 
-    print(f"Vault: {vault}  |  nodes={len(ids)}  |  frontier={args.frontier}")
+    scope = f"{args.id_min or '-∞'}..{args.id_max or '∞'}"
+    print(f"Vault: {vault}  |  nodes={len(ids)}  |  id-scope={scope}")
     print("\n=== TOP HUBS by DIRECT in-degree (not-done skills that depend on X) ===")
     for x in sorted(indeg, key=lambda k: -len(indeg[k]))[:args.top]:
         if x not in ids:

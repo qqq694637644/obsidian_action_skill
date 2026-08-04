@@ -41,11 +41,17 @@ def main() -> None:
         curriculum_ids = {
             int(match.group(1)) for path in vault.glob("*.md")
             if (match := re.match(r"^(\d+)\s+-\s+", path.name))
+            and int(match.group(1)) > 0
         }
     banks = []
-    default_bank = ("papers/question_bank.json" if (vault / "papers/question_bank.json").exists()
-                    else "papers/demo_question_bank.json")
-    for item in catalog.get("question_banks", [{"path": default_bank}]):
+    configured_banks = catalog.get("question_banks")
+    if configured_banks is None:
+        configured_banks = (
+            [{"path": "papers/question_bank.json"}]
+            if (vault / "papers/question_bank.json").exists()
+            else []
+        )
+    for item in configured_banks:
         spec = {"path": item} if isinstance(item, str) else item
         rows = read(vault / spec["path"], [])
         if isinstance(rows, dict):

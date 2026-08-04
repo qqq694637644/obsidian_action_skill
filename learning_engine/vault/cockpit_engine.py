@@ -37,7 +37,6 @@ ERROR_LOG_PATH = (VAULT / "00 - Error Log.md" if (VAULT / "00 - Error Log.md").e
 LOCK_PATH = VAULT / ".obsidian" / ".cockpit-state.lock"
 ANSWER_TEX_PATH = VAULT / "papers" / "answers_tex.json"
 QUESTION_BANK_PATH = VAULT / "papers" / "question_bank.json"
-DEMO_BANK_PATH = VAULT / "papers" / "demo_question_bank.json"
 TMUA_BANK_PATH = VAULT / "papers" / "tmua" / "question_bank.json"
 RENDERS = VAULT / "papers" / "renders"
 TMUA_RENDERS = VAULT / "papers" / "tmua" / "renders"
@@ -112,11 +111,12 @@ def state_lock(timeout: float = 5.0):
 def default_state() -> dict:
     catalog = read_json(CATALOG_PATH, {})
     profiles = list(catalog.get("profiles", {}))
+    default_deadline = (dt.date.today() + dt.timedelta(days=365)).isoformat()
     settings = {
-        "deadline": catalog.get("deadline", "2027-12-31"),
-        "weekly_hours": catalog.get("weekly_hours", 10),
+        "deadline": catalog.get("deadline") or default_deadline,
+        "weekly_hours": catalog.get("weekly_hours", 5),
         "courses": catalog.get("default_courses", profiles),
-        "session_minutes": 150,
+        "session_minutes": catalog.get("session_minutes", 60),
     }
     for course, profile in catalog.get("profiles", {}).items():
         routes = profile.get("routes", {})
@@ -184,7 +184,7 @@ def parse_nodes() -> dict[int, dict]:
     nodes: dict[int, dict] = {}
     for path in VAULT.glob("*.md"):
         match = re.match(r"^(\d+)\s+-\s+", path.name)
-        if not match:
+        if not match or int(match.group(1)) <= 0:
             continue
         text = path.read_text(encoding="utf-8", errors="replace")
         fm_match = re.match(r"^---\s*\n(.*?)\n---", text, re.S)
@@ -224,8 +224,9 @@ def load_banks() -> list[dict]:
     minimum_confidence = float(vault_config.get("minimum_tag_confidence", 0) or 0)
     configured = catalog().get("question_banks", [])
     if not configured:
-        primary = QUESTION_BANK_PATH if QUESTION_BANK_PATH.exists() else DEMO_BANK_PATH
-        configured = [str(primary.relative_to(VAULT))]
+        configured = []
+        if QUESTION_BANK_PATH.exists():
+            configured.append(str(QUESTION_BANK_PATH.relative_to(VAULT)))
         if TMUA_BANK_PATH.exists():
             configured.append(str(TMUA_BANK_PATH.relative_to(VAULT)))
     entries = []
@@ -402,7 +403,10 @@ def progress_snapshot() -> dict:
         if x.get("completed") and int(x.get("questions_seen", x.get("attempted", 0)) or 0) > 0
     ]
     rolling = round(sum(timed[-3:]) / len(timed[-3:]), 1) if timed else 0.0
-    deadline = dt.date.fromisoformat(state["settings"]["deadline"])
+    try:
+        deadline = dt.date.fromisoformat(str(state["settings"].get("deadline", "")))
+    except ValueError:
+        deadline = dt.date.today() + dt.timedelta(days=365)
     days = max((deadline - dt.date.today()).days, 0)
     remaining = max(len(target) - proficient, 0)
     weekly_needed = remaining / max(days / 7, 1 / 7)

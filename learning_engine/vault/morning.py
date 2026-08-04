@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-morning.py — single morning entrypoint for the math vault.
+morning.py — single morning entrypoint for the personal learning vault.
 
 Runs:
   1. study_today (flow zone × unlock leverage)
   2. FSRS due / legacy backlog stats
   3. regenerates Review Grader + SRS Tracker
-  4. micro-schema bridge suggestions
+  4. optional micro-schema bridge suggestions
   5. weak-spot boosts from 00 - Weak Spots Priority.md + Error Log
 
 Usage (from vault root):
@@ -61,11 +61,11 @@ def main():
             pass
 
     print("=" * 64)
-    print("  MORNING — Math Vault 2-sigma loop")
+    print("  MORNING — Personal Learning OS")
     print("=" * 64)
 
     # 1) Study today
-    run([sys.executable, "study_today.py", "--top", str(top), "--frontier"])
+    run([sys.executable, "study_today.py", "--top", str(top)])
 
     # 2) FSRS stats + due
     run([sys.executable, "srs_fsrs.py", "--stats"])
@@ -91,7 +91,7 @@ def main():
     print("  1. Open 00 - Review Grader.md → grade 20–30 oldest (Again if shaky)")
     print("  2. Finish in-progress (see study_today * marks)")
     print("  3. Do top 2 study_today flow-zone items")
-    print("  4. 5–10 min micro_trainer (suggested cmds above)")
+    print("  4. Optional: 5–10 min micro trainer if a subject adapter suggests one")
     print("  5. Evening: python evening.py")
     print("=" * 64)
 

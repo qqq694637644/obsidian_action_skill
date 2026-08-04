@@ -12,7 +12,7 @@ def note_ids(vault: Path) -> set[int]:
     out = set()
     for path in vault.glob("*.md"):
         match = re.match(r"^(\d+) - .+\.md$", path.name)
-        if match:
+        if match and int(match.group(1)) > 0:
             out.add(int(match.group(1)))
     return out
 

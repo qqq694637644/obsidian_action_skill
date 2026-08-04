@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-evening.py — single evening entrypoint for the math vault.
+evening.py — single evening entrypoint for the personal learning vault.
 
 Runs:
   1. mastery sync + Flow Zone Diagnostic markdown

@@ -11,9 +11,9 @@ Or double-click `Launch Learning Cockpit.bat`. The app opens privately on
 
 Use **Today** for a deadline-aware plan, **Study** for guided review and practice,
 **Courses** to inspect targets/support skills and update subskills, and
-**Progress** for the delayed-retrieval and timed-set evidence gate. The included
-Algebra Basics questions are original demo content and can be replaced with your
-own tagged bank.
+**Progress** for the delayed-retrieval and timed-set evidence gate. A fresh Vault
+contains no questions. Add your own `papers/question_bank.json` or configure one
+in `config/course_catalog.json` before starting guided question sessions.
 
 The key distinction is destination versus cause: course targets determine
 coverage, while prerequisite ancestors may be recommended as short support

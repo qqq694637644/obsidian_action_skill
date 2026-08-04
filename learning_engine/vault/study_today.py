@@ -11,7 +11,7 @@ Merges:
 Usage (run from vault root):
   python study_today.py
   python study_today.py --top 15
-  python study_today.py --frontier        # A-Level IDs 130-720 only
+  python study_today.py --id-min 100 --id-max 999
 """
 import os, re, glob, json, argparse, sys
 from collections import defaultdict
@@ -26,7 +26,7 @@ def load_graph(vault):
     ids, mastery, prereqs = {}, {}, defaultdict(list)
     for fp in glob.glob(os.path.join(vault, "*.md")):
         m = re.match(r'^(\d+)\s*-', os.path.basename(fp))
-        if not m:
+        if not m or int(m.group(1)) <= 0:
             continue
         eid = int(m.group(1))
         ids[eid] = os.path.basename(fp)[:-3]
@@ -96,7 +96,8 @@ def weak_spot_ids(vault):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--top", type=int, default=15)
-    ap.add_argument("--frontier", action="store_true", help="A-Level IDs 130-720 only")
+    ap.add_argument("--id-min", type=int, default=None, help="optional minimum skill ID")
+    ap.add_argument("--id-max", type=int, default=None, help="optional maximum skill ID")
     args = ap.parse_args()
 
     import flow_diagnostic as diag
@@ -121,7 +122,9 @@ def main():
 
     ranked = []
     for n in flow_nums:
-        if args.frontier and not (130 <= n <= 720):
+        if args.id_min is not None and n < args.id_min:
+            continue
+        if args.id_max is not None and n > args.id_max:
             continue
         leverage = len(fully.get(n, []))
         prog_bonus = 1 if in_prog(n) else 0
@@ -170,7 +173,7 @@ def main():
                 cnt = "?"
             print(f"  #{n}: {cnt} questions  ->  practice/{n} - Practice.md")
 
-    print("\nOrder: Review Grader (20–30) → finish * items → top 2 rows → CCT 5–10m.")
+    print("\nOrder: Review Grader (20–30) → finish * items → top 2 rows → optional subject drill.")
     print("Morning wrapper: python morning.py")
 
 

@@ -32,7 +32,7 @@ def run_aggregation():
     
     for f in VAULT_PATH.glob("*.md"):
         m = re.match(r"^(\d+)\s*-", f.name)
-        if not m:
+        if not m or int(m.group(1)) <= 0:
             continue
         num = int(m.group(1))
         exercise_files[num] = f

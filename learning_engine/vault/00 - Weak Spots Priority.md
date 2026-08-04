@@ -1,11 +1,11 @@
----
-tags: [reference]
----
-
 # Weak Spots Priority
 
-Updated by `/error-triage`. Highest-leverage gaps first.
+> Updated by the `error-triage` Skill. Keep this list short and evidence-based.
 
-| Priority | Skill | Evidence | Prescribed fix |
-|---|---|---|---|
-| _(empty — run /error-triage after logging errors)_ | | | |
+## Active priorities
+
+_No diagnosed weak spots yet._
+
+## Resolved
+
+_None._

@@ -34,7 +34,7 @@ def vault_note_ids() -> set:
     ids = set()
     for fp in VAULT.glob("*.md"):
         m = re.match(r"^(\d+)\s*-", fp.name)
-        if m:
+        if m and int(m.group(1)) > 0:
             ids.add(int(m.group(1)))
     return ids
 

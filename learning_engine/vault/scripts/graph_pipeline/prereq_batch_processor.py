@@ -128,6 +128,7 @@ def parse_note(filepath: Path) -> Optional[dict]:
     
     # Extract fields
     topic_m = re.search(r"^topic:\s*(.+)", fm, re.MULTILINE)
+    domain_m = re.search(r'^domain:\s*"?(.+?)"?\s*$', fm, re.MULTILINE)
     exercise_m = re.search(r"^exercise:\s*(\d+)", fm, re.MULTILINE)
     name_m = re.search(r'^name:\s*"?(.+?)"?\s*$', fm, re.MULTILINE)
     prereqs_m = re.search(r"^prerequisites:\s*\[([^\]]*)\]", fm, re.MULTILINE)
@@ -141,6 +142,8 @@ def parse_note(filepath: Path) -> Optional[dict]:
         return None
     
     exercise_num = int(exercise_m.group(1))
+    if exercise_num <= 0:
+        return None
     name = name_m.group(1).strip() if name_m else filepath.stem
     
     # Extract prerequisites
@@ -156,7 +159,7 @@ def parse_note(filepath: Path) -> Optional[dict]:
     # Extract subskills from body
     subskills = re.findall(r"- \[[ x]\] (.+)", content)
     
-    domain = TOPIC_TO_DOMAIN.get(topic, "Unknown")
+    domain = domain_m.group(1).strip() if domain_m else TOPIC_TO_DOMAIN.get(topic, "Uncategorised")
     
     return {
         "num": exercise_num,
@@ -268,7 +271,7 @@ def generate_batches(exercises: List[dict], existing_edges: List[dict], batch_si
     }, indent=2), encoding="utf-8")
     
     # Write the system prompt
-    system_prompt = """You are a mathematics curriculum graph specialist, modeled after Math Academy's knowledge graph system. Your job is to analyze exercise descriptions and determine prerequisite relationships between them.
+    system_prompt = """You are a curriculum knowledge-graph specialist. Your job is to analyze observable skill descriptions for any subject and determine prerequisite relationships between them.
 
 ## Types of Edges
 1. **HARD_PREREQ**: Skills that MUST be understood before attempting this one.
@@ -278,7 +281,7 @@ def generate_batches(exercises: List[dict], existing_edges: List[dict], batch_si
 ## Rules
 1. Be GRANULAR — link specific exercise numbers, not broad categories
 2. Avoid transitivity — don't add A→C if A→B and B→C already exist
-3. Cross-domain links are important (e.g., algebra exercises that use geometry)
+3. Cross-domain links are important (for example, a programming skill that relies on mathematics or a writing skill that relies on research methods)
 4. Consider both conceptual and procedural prerequisites
 5. Use the subskills to judge granularity
 6. Direction: `from` = prerequisite, `to` = dependent skill
@@ -304,7 +307,7 @@ Return ONLY a JSON array of edge objects:
     # Write Hermes agent config
     hermes_config = {
         "name": "prereq-miner",
-        "description": "Mines prerequisite relationships between math exercises",
+        "description": "Mines prerequisite relationships between learnable skills",
         "model": "deepseek-v4-flash",
         "system_prompt_file": "system_prompt.txt",
         "batch_dir": str(OUTPUT_DIR),
@@ -431,7 +434,7 @@ def apply_to_vault() -> None:
     exercise_files = {}
     for f in VAULT_PATH.glob("*.md"):
         m = re.match(r"^(\d+)\s*-", f.name)
-        if m:
+        if m and int(m.group(1)) > 0:
             exercise_files[int(m.group(1))] = f
     
     updated = 0
@@ -511,7 +514,8 @@ def main():
         # Parse all notes
         exercises = []
         for f in sorted(VAULT_PATH.glob("*.md")):
-            if re.match(r"^\d+\s*-", f.name):
+            match = re.match(r"^(\d+)\s*-", f.name)
+            if match and int(match.group(1)) > 0:
                 result = parse_note(f)
                 if result:
                     exercises.append(result)
@@ -531,7 +535,8 @@ def main():
     elif action == "--stats":
         exercises = []
         for f in sorted(VAULT_PATH.glob("*.md")):
-            if re.match(r"^\d+\s*-", f.name):
+            match = re.match(r"^(\d+)\s*-", f.name)
+            if match and int(match.group(1)) > 0:
                 result = parse_note(f)
                 if result:
                     exercises.append(result)
@@ -541,7 +546,8 @@ def main():
         
         print(f"📊 Current Stats:")
         print(f"   Total exercises: {len(exercises)}")
-        print(f"   With prerequisites: {with_prereqs} ({100*with_prereqs//len(exercises)}%)")
+        pct = 100 * with_prereqs // len(exercises) if exercises else 0
+        print(f"   With prerequisites: {with_prereqs} ({pct}%)")
         print(f"   Total edges: {len(existing)}")
         print(f"   Domains: {len(set(e['domain'] for e in exercises))}")
     

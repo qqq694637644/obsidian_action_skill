@@ -94,7 +94,7 @@ the loop: mistakes → analysis → prioritized re-study.
 ## Weekly-ish upkeep
 
 - `python scripts/srs-backlog.py` — true backlog check (dashboards truncate).
-- `python scripts/unlock_priority.py --frontier --top 20` — re-rank what unlocks most.
+- `python scripts/unlock_priority.py --top 20` — re-rank what unlocks most.
 - `python scripts/verify_engine.py` — full engine self-test after any bulk edit.
 - Sprint plans (if you use them) are **menus, not calendars** — when behind, run
   catch-up order (see `03-engine-internals.md`), don't grind the calendar.

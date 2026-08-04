@@ -40,19 +40,16 @@ cloud. Sync however you sync files (git, Syncthing, Obsidian Sync).
 **Should I commit `.obsidian/srs_state.json`?**
 In a *private* vault repo, committing it gives you history/backup of your review
 state — fine. In a *public* repo, gitignore it: it's a timestamped log of everything
-you studied and failed. (This template ships a demo one on purpose so scripts run
-out of the box.)
+you studied and failed. This repository ships only an empty state object.
 
-**The demo says something is "due" — the dates are old.**
-Intentional: the demo SRS state uses fixed past dates so `--due` is non-empty on any
-future clone. Delete the demo notes and `srs_state.json` content when you build your
-own subject.
+**Why does a fresh clone show zero due reviews?**
+The personal Vault is intentionally empty. Reviews appear only after real skill
+checkboxes and grading history are added.
 
-**How do I reset / start my own subject?**
-Delete the numbered demo notes (`1 - ...` to `15 - ...`), the two hub notes
-(Expressions/Equations), empty `reviews` in `.obsidian/srs_state.json` (or delete the
-file), empty `.engine/prerequisite_edges.json` to `[]`, and follow
-`docs/02-build-pipeline.md`. The dashboards regenerate themselves.
+**How do I start my own subject?**
+Follow `GETTING_STARTED.md`: use the `knowledge-graph` Skill, a concrete source, and
+`vault/templates/Skill Note.md`. The repository already starts with empty edges,
+review history, course targets, and question banks.
 
 **Does the paper pipeline work for my exam board?**
 The architecture is board-agnostic; the PDF-splitting regexes are CIE-shaped. Budget

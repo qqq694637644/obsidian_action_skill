@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Math Academy Flow Zone Diagnostic
-==================================
+Personal Learning Graph Flow-Zone Diagnostic
+=============================================
 Scans the Obsidian vault, computes progress per exercise, checks prerequisite
 chains, and outputs a diagnostic report showing:
   - 🔥 Flow Zone: exercises ready to learn (prerequisites mastered, not yet done)
@@ -35,28 +35,7 @@ IGNORE_FILES = {"00 - Master Index.md", "00 - Weak Spots Priority.md",
                 "00 - Algebra 1 Study Plan.md", "00 - 2-Week Algebra Mastery Sprint.md",
                 "00 - 2-Week AS Maths Sprint.md", "flow_diagnostic.py"}
 IGNORE_PREFIXES = ("00 -",)
-TOPIC_INDEX_FILES = {
-    "Algebraic Fractions", "Algebraic Notation and Manipulation", "Algebraic Proof",
-    "Binomial Expansion", "Boolean Algebra and Logic", "Changing the Subject",
-    "Conics", "Estimating Gradient and Area Under a Curve", "Expanding Brackets",
-    "Factorising Expressions", "Functions", "Graph Plotting and Recognition",
-    "Graphs of Circles", "Graphs of Exponential Functions",
-    "Graphs of Quadratic and Polynomial Functions", "Graphs of Reciprocal Functions",
-    "Hyperbolic Functions", "Inequalities", "Laws of Indices", "Linear Graphs",
-    "Logarithms and Solving Exponential Equations", "Modulus Function",
-    "Numerical Methods", "Parametric Equations", "Partial Fractions",
-    "Polynomials Division, Roots and Factor Theorem", "Sequences Fundamentals",
-    "Sequences and Series Advanced", "Simultaneous Equations Systems of Equations",
-    "Solving Linear Equations", "Solving Quadratic Equations", "Substitution",
-    "Transformations of Curves", "Substitution.md",
-    "AS - Proof", "AS - Algebra and functions", "AS - Coordinate geometry in the (x,y) plane",
-    "AS - Sequences and series", "AS - Trigonometry", "AS - Exponentials and logarithms",
-    "AS - Differentiation", "AS - Integration", "AS - Vectors",
-    "AS - Statistical sampling", "AS - Data representation and interpretation",
-    "AS - Probability", "AS - Statistical distributions",
-    "AS - Statistical hypothesis testing",
-    "AS - Kinematics", "AS - Forces and Newton's laws", "AS - Variable acceleration",
-}
+TOPIC_INDEX_FILES = set()
 
 
 _RETRIEVAL_CACHE = None  # lazy-loaded exercise_id -> bool

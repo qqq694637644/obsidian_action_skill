@@ -94,7 +94,7 @@ Conventions that matter (scripts depend on them):
 - One topic MOC note per domain (`Equations.md`), linked via `parents` + a body wikilink.
 
 Generation is mechanical — safe to delegate to an agent or a 30-line script that
-reads the Phase 1 JSON. See the demo notes in `vault/` for the exact target shape.
+reads the Phase 1 JSON. Use `vault/templates/Skill Note.md` as the exact target shape.
 
 ## Phase 3 — Mine prerequisites (the core)
 

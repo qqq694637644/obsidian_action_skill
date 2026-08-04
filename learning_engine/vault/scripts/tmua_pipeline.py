@@ -219,7 +219,7 @@ def topic_index() -> str:
     lines = []
     for f in sorted(VAULT.glob("*.md")):
         m = re.match(r"^(\d+)\s*-\s*(.+)\.md$", f.name)
-        if not m:
+        if not m or int(m.group(1)) <= 0:
             continue
         num, name = int(m.group(1)), m.group(2)
         subs = re.findall(r"^- \[[ x]\] \d+[a-z]: (.+)$",

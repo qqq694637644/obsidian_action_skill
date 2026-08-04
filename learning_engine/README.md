@@ -40,10 +40,9 @@ human or AI agent — can replicate it for any subject.
 ```bash
 git clone https://github.com/qqq694637644/obsidian_action_skill
 cd obsidian_action_skill/learning_engine/vault
-python morning.py        # ranked study plan from the demo data
-python study_today.py    # the flow-zone x unlock-leverage ranker on its own
-python srs_fsrs.py --due # what FSRS says is due
-python cockpit_app.py     # open the private local GUI
+python scripts/verify_engine.py # verify structure + synthetic engine behavior
+python morning.py               # clean Vault: zero items until your graph exists
+python cockpit_app.py            # open the private local GUI
 ```
 
 This engine is integrated with the repository's GPT Action gateway. From the
@@ -52,9 +51,9 @@ repository root, install and start the gateway, set `WORKSPACE_ROOT` to
 loads the original `knowledge-graph`, `error-triage`, and `vault-maintenance`
 Skills directly from `vault/.claude/skills/`.
 
-Open the `vault/` folder in Obsidian (install the **Dataview** community plugin when
-prompted) and press `Ctrl+G` for the colored graph. The vault ships with a 15-note
-"Algebra Basics" demo — real edges, real SRS state — so every script runs out of the box.
+Open the `vault/` folder in Obsidian, install the **Dataview** community plugin when
+prompted, and read `START_HERE.md`. The Vault is intentionally clean: no demo
+subject, no inherited mastery, no review history, and no fallback question bank.
 
 **The core engine and cockpit are pure Python standard library.** No pip installs, no accounts,
 no cloud. (Only the optional past-paper pipeline needs `pip install pymupdf`.)
@@ -83,7 +82,7 @@ curriculum source ──extract──▶ skill notes (one .md per skill, checkbo
 
 ```
 docs/            the full handbook (architecture → build pipeline → engine → pitfalls)
-vault/           the template vault — open this in Obsidian; scripts live inside it
+vault/           the clean personal vault — open this in Obsidian; scripts live inside it
 automation/      optional hourly SRS watcher + scheduler setup
 ```
 
@@ -114,9 +113,9 @@ Ideas on the roadmap (and honest analyses of rejected ones, like two-way Anki sy
 
 ## Content policy
 
-This repo contains **no copyrighted curriculum or exam content** — no exam-board
-questions, no scraped course data. The demo vault is original toy content. The
-past-paper pipeline is code only: you point it at PDFs you have the right to use.
+This repo contains **no bundled curriculum or exam content** — no exam-board
+questions, no scraped course data, and no demo question bank. The past-paper
+pipeline is code only: you point it at PDFs you have the right to use.
 
 ## License
 

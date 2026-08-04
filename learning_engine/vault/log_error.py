@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-log_error.py — one-command error capture for the math vault.
+log_error.py — one-command error capture for the personal learning vault.
 
 Replaces the screenshot -> Google Docs -> AI workflow with a single command
 run the moment you get something wrong. Capture is instant (~5s); the deep
@@ -158,7 +158,7 @@ def main():
     if "--again" in flags and subskill_id and re.search(r"[a-z]$", subskill_id):
         print(grade_again(note_stem, subskill_id))
     n = LOG_NOTE.read_text(encoding="utf-8", errors="replace").count("#unanalyzed")
-    print(f"{n} error(s) awaiting triage - run /error-triage in Claude Code to batch-analyse.")
+    print(f"{n} error(s) awaiting triage - ask GPT to use the error-triage Skill.")
 
 
 if __name__ == "__main__":

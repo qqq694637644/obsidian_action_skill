@@ -1,141 +1,137 @@
-# Learning Vault — Agent Context
+# Learning Vault operator guide
 
-> Purpose: prerequisite knowledge graph + FSRS + FIRe + micro-drills for mastery
-> learning (a self-hosted Math Academy-style loop).
-> If you are an AI agent working in this vault: read this file fully before changing
-> SRS, diagnostic, or study-workflow behavior. The full handbook is in `../docs/`.
-> In the integrated GPT Action setup, `WORKSPACE_ROOT` is the parent
-> `learning_engine/` directory. Prefix file paths with `vault/` and run commands
-> with `Set-Location vault`.
+Read this file before changing learning notes, graph edges, SRS state, diagnostics,
+or study workflow behavior. The full handbook is in `../docs/`.
 
-## What this vault is
+In the integrated GPT Action setup, `WORKSPACE_ROOT` points to `learning_engine/`.
+Workspace file paths therefore start with `vault/`, and learning-engine commands
+start with `Set-Location vault`.
 
-One note per skill (`{num} - {slug}.md`, flat at root), lettered sub-skill
-checkboxes as the unit of mastery/SRS, typed prerequisite edges in
-`.engine/prerequisite_edges.json` + note frontmatter. The vault currently contains
-the **Algebra Basics demo** (notes 1–15) — replace it with a real subject via the
-build phases below.
+## Current Vault state
 
-Learning stack:
+This is a clean personal Vault. It intentionally contains:
 
-1. **Knowledge graph** — `prerequisites` / `leads-to` frontmatter, checkbox subskills
-2. **Flow-zone diagnostic** — `flow_diagnostic.py`
-3. **FSRS v6 + chain FIRe** — `srs_fsrs.py` (+ optional `../automation/srs_watcher.py`)
-4. **CCT micro-schemas** — `micro_trainer/`
-5. **Daily wrappers** — `morning.py` / `evening.py`
+- no numbered skill notes;
+- no prerequisite edges;
+- no SRS review history;
+- no question bank;
+- no inherited mastery or error data.
 
-## Daily commands (source of truth)
+Do not recreate the removed Algebra demo. Build the user's real domains directly.
+Read `START_HERE.md` for the human-facing first-run flow.
 
-```bash
-python morning.py                      # study plan + grader + tracker + micro bridge
-python evening.py                      # sync mastery, diagnostic, FIRe, tracker, sprints
-python study_today.py --top 12 --frontier
-python srs_fsrs.py --stats | --due | --reseed | --grader-note | --tracker | --grade "key" Good
-python flow_diagnostic.py --markdown | --sync-mastery | --apply-fire
-python log_error.py <num> "what went wrong" [--shot] [--again] [--sev X]
-python micro_bridge.py
-python scripts/sprint_status.py | scripts/srs-backlog.py
-python scripts/unlock_priority.py --frontier --top 20
-python scripts/verify_engine.py        # full engine self-test
-python micro_trainer/train.py --list
-python cockpit_app.py                   # localhost GUI over the same engine/state
+## Learning-node model
+
+One root Markdown note per skill:
+
+```text
+<number> - <slug>.md
 ```
 
-| Note | Role |
-|------|------|
-| `00 - Flow Zone Diagnostic.md` | Daily plan (AUTO — never hand-edit) |
-| `00 - Review Grader.md` | Due cards with copy-paste grade commands (AUTO) |
-| `00 - SRS Review Tracker.md` | Schedule view (AUTO) |
-| `00 - Error Log.md` | Error capture target + `/error-triage` queue |
-| `00 - Weak Spots Priority.md` | Updated by `/error-triage` |
-| `00 - Master Index.md` | Manual topic overview |
+Lettered checkboxes are the unit of mastery and SRS. Use
+`templates/Skill Note.md` as the schema. Canonical typed edges live in
+`.engine/prerequisite_edges.json` and are mirrored into note frontmatter.
 
-## Building a new subject (agent-executable)
+Only create a numbered node for an observable capability the user intends to learn,
+practise, or retain. Ordinary references and project notes remain non-numbered.
 
-Follow `../docs/02-build-pipeline.md`; the mining methodology is in
-`.claude/skills/knowledge-graph/`. Phase summary + manual fallbacks:
+## Common commands
 
-1. **Extract** the curriculum to `{num, name, topic, domain, subskills[]}` JSON.
-   *Manual fallback:* type the skill list from a syllabus by hand — 60–120 rows is an
-   afternoon and worth it.
-2. **Generate** one note per skill matching the demo notes' exact shape (frontmatter
-   fields, body `#tag`, checkbox format). *Freeze one slugify function first.*
-3. **Mine edges**: `scripts/graph_pipeline/prereq_batch_processor.py --generate`,
-   process batches with an LLM, **validate** (cycles/dangling/transitive-reduction),
-   then `--merge` and `--apply`. *Manual fallback:* hand-fill `prerequisites:` in
-   frontmatter and run `--apply` to mirror them to bodies/edges.
-4. **Aggregate**: `scripts/graph_pipeline/aggregate_topics.py`.
-5. **Color**: edit `.obsidian/graph.json` — ONLY with Obsidian closed.
-6. **Verify**: `python scripts/verify_engine.py` must pass; then `python morning.py`.
+```powershell
+python scripts/verify_engine.py
+python morning.py
+python evening.py
+python study_today.py --top 12
+python srs_fsrs.py --stats
+python srs_fsrs.py --due
+python srs_fsrs.py --grader-note
+python srs_fsrs.py --tracker
+python flow_diagnostic.py --markdown
+python flow_diagnostic.py --sync-mastery
+python flow_diagnostic.py --apply-fire
+python log_error.py <id-or-context> "what went wrong" [--shot] [--again] [--sev X]
+python scripts/unlock_priority.py --top 20
+python scripts/srs-backlog.py
+python cockpit_app.py
+```
 
-Then delete the demo notes (1–15, Expressions.md, Equations.md), reset
-`srs_state.json` `reviews` to `{}`, and reset `.engine/prerequisite_edges.json`.
+Optional ID scoping is generic:
+
+```powershell
+python study_today.py --id-min 100 --id-max 999
+python scripts/unlock_priority.py --id-min 100 --id-max 999
+```
+
+## Building or extending a domain
+
+Use the `knowledge-graph` Skill and `../docs/02-build-pipeline.md`.
+
+1. **Scope** — identify the user's source of truth and intended outcomes.
+2. **Extract** — create curriculum JSON containing stable IDs, names, domains,
+   topics, and observable subskills.
+3. **Generate** — create notes matching `templates/Skill Note.md`.
+4. **Mine edges** — generate typed prerequisite candidates in batches.
+5. **Validate** — reject cycles, reduce redundant HARD paths, check dangling IDs,
+   inspect cross-domain edges, and keep a one-sentence reason per edge.
+6. **Apply** — update note frontmatter, edge JSON, topic indexes, and the course
+   profile in `config/course_catalog.json`.
+7. **Verify** — run `python scripts/verify_engine.py`, then `python morning.py`.
+
+Do not mark newly generated skills mastered. A new personal graph starts with
+`not-started` mastery and empty review history unless the user provides evidence.
 
 ## Mastery rules
 
-- Checkboxes drive progress; sync updates **4 places** (`mastery:`, `tags:`,
-  body `#tag`, display text) — use `--sync-mastery`, never patch one place.
-- 100% boxes alone → `proficient` max; `mastered` needs retrieval proof (Good/Easy
-  FSRS history).
-- Ladder: `not-started → attempted → familiar → proficient → mastered`.
+Mastery is represented in four places:
+
+1. `mastery:` frontmatter;
+2. `tags:` frontmatter;
+3. the body mastery tag such as `#not-started`;
+4. `Mastery: **not-started**` display text.
+
+`flow_diagnostic.py --sync-mastery` repairs these from checkbox truth. Completing all
+checkboxes caps a skill at `proficient`; promotion to `mastered` requires delayed
+Good/Easy retrieval evidence in FSRS history.
 
 ## Hard constraints
 
-- **Never** hand-edit or hand-commit `.obsidian/srs_state.json` (engine-owned).
-- **Never** regenerate `graph.json` while Obsidian is open.
-- AUTO-marked notes are regenerated — never hand-edit them; change the generator.
-- Idempotent inserts into hand-written notes use `<!-- auto:... -->` marker blocks —
-  replace only within markers.
-- All scripts print console-safely (`sys.stdout.reconfigure(errors="replace")`);
-  keep new scripts ASCII-safe in `print()`.
-- Review-vs-new policy: prefer new flow-zone topics that FIRe-review decayed
-  prerequisites, keep a 10–15 card/day direct-review floor, and finish with a short
-  direct-review tail for decayed leaves (they have no dependents to absorb them).
+- Do not manually edit `.obsidian/srs_state.json` during normal operation.
+- Do not regenerate `.obsidian/graph.json` while Obsidian is open.
+- Do not hand-edit generated dashboard notes or generated `practice/*.md` files.
+- Do not add a HARD prerequisite merely because two concepts are related.
+- Do not duplicate a skill to satisfy multiple courses; use course profiles and
+  overlays over one canonical graph.
+- Keep personal question banks, renders, extracted PDFs, and Cockpit state in their
+  existing gitignored locations.
 
-## Optional: past-paper practice (Phase 7)
+## Daily workflow
 
-With your own PDFs: see `../docs/05-paper-pipeline.md`. Pipeline order: `extract.py
---src ... --years ...` → `extract.py --batches` → `process_batches.py` →
-`merge_bank.py` → `render_questions.py` (question PNGs **and** per-question
-mark-scheme crops) → optional `latexify_answers.py` (LaTeX finals) →
-`gen_practice.py`. Per node it generates `practice/{num} - Practice.md` (LaTeX
-final line + MS crop image in a folded callout) + `papers/booklets/{num} -
-Booklet.pdf` (each question followed by its MS crop, same page when it fits) + a
-marker block in the note; `study_today.py` marks such picks with `p`. Serve
-interactively with `python quiz.py` (flow-zone/due selection, self-grades wired to
-FSRS, misses to the error log). Bank/renders/booklets are gitignored (copyrighted
-source material stays local).
+Morning:
 
-## Local Learning Cockpit
+1. run `morning.py`;
+2. grade due reviews honestly;
+3. finish in-progress skills;
+4. study the highest-leverage Flow Zone items;
+5. run optional subject-specific micro drills only when configured.
 
-`cockpit_app.py` and `cockpit_engine.py` provide a dependency-free localhost UI.
-Course targets drive coverage; HARD/SOFT ancestors remain eligible as support
-skills. `config/causal_bridges.json` can add reviewable diagnostic relationships
-without changing the canonical gating DAG. Personal GUI state lives in
-`papers/cockpit_state.json` and must remain gitignored. See
-`LEARNING_COCKPIT_WALKTHROUGH.md`.
+During study, capture errors quickly with `log_error.py` or the `error-triage` Skill.
+Do not interrupt the session with deep analysis.
 
-Guided sessions queue a capped FSRS review floor and then questions from the
-ranked prerequisite-ready Today plan. Wrong/partial answers require a classified
-one-line cause. A vague first concept failure pauses on the target; named or
-repeated prerequisite evidence launches a diagnostic. Confirmed gaps pause for
-a capped learning block and fresh retest where possible. Stable presentation
-ids make double-clicks idempotent, empty timed sets are discarded, and active
-sessions reopen directly in Study.
+Evening:
 
-Finishing a non-empty session synchronizes checkbox-derived mastery tags and
-regenerates the Flow Zone, Review Grader, and SRS Tracker. This updates graph
-colours and dashboard notes without rewriting `graph.json` or applying FIRe.
-Failures leave the study session saved and fall back to `python evening.py`.
+1. run `evening.py`;
+2. triage `#unanalyzed` errors when appropriate;
+3. let weak spots feed back into the next ranking.
 
-The cockpit is subject-neutral. Keep shared Python/HTML/JS identical across
-vaults and declare course targets, bank/render paths, error types, causal flags,
-and optional multidimensional rubrics in `config/course_catalog.json`. Use the
-toolkit's installer and validator instead of creating subject-specific forks.
+## Cockpit configuration
 
-## Skills available to agents
+The Cockpit is subject-neutral and starts without questions. Configure destinations,
+question banks, assessment rubrics, error types, and optional routes in
+`config/course_catalog.json`. Graph ancestors remain available as causal support
+nodes even when they are not explicit course targets.
 
-- `knowledge-graph` (`.claude/skills/knowledge-graph/`) — full graph-building methodology + validation gate
-- `error-triage` (`.claude/skills/error-triage/`) — quick error capture and batch analysis
-- `vault-maintenance` (`.claude/skills/vault-maintenance/`) — day-to-day ops: mastery sync details,
-  catch-up strategy, index upkeep, known failure modes
+## Skills available to GPT
+
+- `knowledge-graph` — add or reorganize learnable knowledge and validate the DAG;
+- `error-triage` — capture mistakes and perform deferred root-cause analysis;
+- `vault-maintenance` — daily planning, review grading, mastery, FSRS/FIRe, and upkeep.

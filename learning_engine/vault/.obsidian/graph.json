@@ -41,20 +41,6 @@
         "a": 1,
         "rgb": 14474460
       }
-    },
-    {
-      "query": "tag:#expressions",
-      "color": {
-        "a": 1,
-        "rgb": 5431378
-      }
-    },
-    {
-      "query": "tag:#equations",
-      "color": {
-        "a": 1,
-        "rgb": 11171004
-      }
     }
   ],
   "collapse-display": true,
