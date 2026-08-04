@@ -46,8 +46,10 @@ skill_temple = [
     "example_skills/*/references/*",
     "example_skills/*/scripts/*",
     "example_skills/*/assets/*",
-    "example_skills/*/agents/*.yaml",
 ]
+
+[tool.setuptools.exclude-package-data]
+skill_temple = ["example_skills/*/agents/*.yaml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

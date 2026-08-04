@@ -12,7 +12,7 @@
 
 不会把所有 Skill 正文静态塞进 prompt，也不需要先调用 Action 查询目录。
 
-`GPT_ACTION_PROMPT.md` 只保留身份、授权边界、Skill 加载协议、Workspace 工具可靠性和完成标准。笔记路由、Vault 治理、学习图谱、错题和 FSRS/FIRe 流程全部由对应 Skill 按需提供，避免主提示词和 Skill 重复。
+`GPT_ACTION_PROMPT.md` 只保留身份、授权边界、Skill 加载协议、精简的 Action 选择图、Workspace 工具可靠性和完成标准。笔记路由、Vault 治理、学习图谱、错题和 FSRS/FIRe 流程全部由对应 Skill 按需提供，避免主提示词和 Skill 重复。各 Action 的参数、返回字段和错误行为由 OpenAPI schema 描述。
 
 ## 公开 Actions
 
@@ -70,7 +70,7 @@ description: Route new information or edit requests to the right Obsidian note.
 Read `references/routing-matrix.md` when choosing between updating and creating notes.
 ```
 
-`name` 同时作为稳定的 `skill_id`。详细资料放在 `docs/`、`references/`、`scripts/` 或 `assets/`，并从 `SKILL.md` 中明确引用。
+`name` 同时作为稳定的 `skill_id`。当前 runtime 只把 `SKILL.md` 作为 Skill 元数据和正文入口；不会读取 `agents/openai.yaml`。详细资料放在 `docs/`、`references/`、`scripts/` 或 `assets/`，并从 `SKILL.md` 中明确引用。
 
 ## 生成 GPT Instructions
 

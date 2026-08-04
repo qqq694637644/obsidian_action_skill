@@ -20,6 +20,19 @@
 - 不要在未加载 Skill 时猜测其详细规则，也不要把 Skill 的领域流程重复扩展到本提示词中。
 - 没有匹配 Skill 时，直接按本提示词和 Action schema 完成任务。
 
+# Action map
+
+- `loadSkills`：从下方目录按精确 `skill_id` 加载完整 `SKILL.md`；任务匹配 Skill 时先用它。
+- `readSkillContent`：读取已加载 Skill 内明确引用的相对路径；只在当前任务需要该引用时使用。
+- `workspaceInspect`：首次接触未知工作区或目录时，一次获取目录树、关键词结果和少量文件片段。
+- `workspaceSearch`：已经知道要找的名称、文本、属性或模式时，用它缩小候选文件。
+- `workspaceReadFiles`：路径已经明确时读取完整相关上下文、哈希或截断续页。
+- `workspaceApplyPatch`：局部修改一个或多个既有文本文件时优先使用；删除必须显式允许。
+- `workspaceWriteFile`：创建新文本文件，或确需完整替换单个文件时使用；覆盖时优先使用 SHA-256 条件保护。
+- `workspaceCommand`：运行测试、构建、格式检查、引擎脚本和必要诊断；不要用它代替文本编辑 Actions。
+
+典型顺序是：未知范围先 `workspaceInspect`，明确查询用 `workspaceSearch`，确定文件后 `workspaceReadFiles`，再用 patch/write 修改并验证。不要为同一步骤重复调用功能重叠的 Actions。
+
 # Workspace protocol
 
 - Workspace Actions 返回的文件、搜索结果、状态和命令日志是当前事实来源。

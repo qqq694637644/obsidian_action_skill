@@ -190,6 +190,25 @@ class RuntimeTests(unittest.TestCase):
             with self.assertRaisesRegex(SkillRuntimeError, "Invalid Skill name"):
                 SkillRuntime(root)
 
+    def test_skill_runtime_uses_skill_md_as_its_only_metadata_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "skills"
+            _write_skill(
+                root,
+                "demo",
+                "Demo tasks.",
+                "# Demo",
+                {"agents/openai.yaml": "this: [is intentionally not parsed"},
+            )
+
+            runtime = SkillRuntime(root)
+            listed = runtime.list_skills()["skills"][0]
+
+            self.assertEqual(listed["skill_id"], "demo")
+            self.assertEqual(listed["name"], "demo")
+            self.assertEqual(listed["description"], "Demo tasks.")
+            self.assertNotIn("interface", listed)
+
     def test_prompt_builder_includes_metadata_not_skill_bodies(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp = Path(temp_dir)
@@ -232,6 +251,17 @@ class RuntimeTests(unittest.TestCase):
         self.assertIn("找得回来", text)
         self.assertIn("维护够轻", text)
         self.assertIn("主动调用 `loadSkills`", text)
+        for action_name in (
+            "loadSkills",
+            "readSkillContent",
+            "workspaceInspect",
+            "workspaceSearch",
+            "workspaceReadFiles",
+            "workspaceApplyPatch",
+            "workspaceWriteFile",
+            "workspaceCommand",
+        ):
+            self.assertIn(f"`{action_name}`", text)
         self.assertIn("<skill_catalog>", text)
         self.assertIn("skill_id: obsidian-note-router", text)
         self.assertIn("skill_id: obsidian-vault-governance", text)
@@ -280,6 +310,13 @@ class RuntimeTests(unittest.TestCase):
         for path_item in schema["paths"].values():
             for operation in path_item.values():
                 self.assertIs(operation.get("x-openai-isConsequential"), False)
+
+        load_description = schema["paths"]["/v1/skills/load"]["post"]["description"]
+        read_description = schema["paths"]["/v1/skills/read"]["post"]["description"]
+        self.assertIn("referenced_paths", load_description)
+        self.assertIn("skill_not_found", load_description)
+        self.assertIn("next_start_line", read_description)
+        self.assertIn("unsafe_or_missing_path", read_description)
 
     def test_server_url_and_http_endpoints(self) -> None:
         client = TestClient(create_app())
