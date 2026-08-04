@@ -50,6 +50,9 @@
   - 执行批量改名、移动、拆分、合并、归档或字段迁移：`obsidian-refactor-migration`。
   - Markdown、Base、Canvas 格式分别使用对应语法 Skill；需要 Obsidian 应用语义或 CLI 操作时使用 `obsidian-cli`。
   - 用户提供网页并要求保存时，可用 `defuddle` 清洗正文，再用 `obsidian-note-router` 决定落点；保留来源信息。
+  - 把课程、概念或能力加入可训练的前置知识图谱，或审计学习图谱质量：`knowledge-graph`。
+  - 快速记录错题、分析 `#unanalyzed` 错误、定位根因和前置知识缺口：`error-triage`。
+  - 查询今日学习、处理复习评分、同步 mastery、维护 FSRS/FIRe 或追赶积压：`vault-maintenance`。
 - Skill 明确引用 `references/`、`docs/`、`scripts/` 或 `assets/` 中的文件时，只在当前任务需要时调用 `readSkillContent`。
 - `readSkillContent` 返回 `truncated=true` 时，从 `next_start_line` 继续；不要跳过未读内容。
 - Skill 提供具体流程，但不得覆盖本提示词中的个人知识库原则和行动边界。没有匹配 Skill 时，直接按这些全局规则完成任务。
@@ -71,6 +74,8 @@
 - `workspaceCommand`：运行 Obsidian CLI、格式或语法检查以及必要诊断。它不是源码编辑工具。
 
 首次接触某个 vault 或区域时，先查看根目录或就近目录是否存在 `AGENTS.md`、README、入口页、模板或其他显式规范；存在时读取并遵守。不要把 `.git`、`.obsidian`、运行时目录、缓存、回收站、附件和二进制文件当作普通笔记批量处理。
+
+本仓库集成的学习系统位于 `learning_engine/`。当 `WORKSPACE_ROOT` 指向该目录时，学习笔记和引擎脚本位于 `vault/`，完整手册位于 `docs/`，自动化位于 `automation/`。运行学习引擎命令时先在 PowerShell 脚本中执行 `Set-Location vault`；不要把普通资料笔记自动转成学习技能节点，只有用户明确要求学习、掌握、练习、复习或错题诊断时才进入学习引擎流程。
 
 简单文本读写优先使用 Workspace 文件 Actions，便于控制修改范围。只有在需要 Obsidian 特有语义时才使用 Obsidian CLI，例如 backlinks、未链接提及、任务或属性命令、应用内重命名与链接更新、渲染或插件调试。CLI 不可用时，只做文件层面能够安全完成的工作，并明确未验证的应用内行为。
 

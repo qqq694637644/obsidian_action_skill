@@ -56,11 +56,34 @@ class RuntimeTests(unittest.TestCase):
     def test_packaged_example_is_discovered(self) -> None:
         runtime = load_runtime()
         skills = runtime.list_skills()["skills"]
+        skill_ids = {item["skill_id"] for item in skills}
         example = next(
             item for item in skills if item["skill_id"] == "obsidian-note-router"
         )
         self.assertEqual(example["entrypoint"], "SKILL.md")
         self.assertTrue(example["content_hash"].startswith("sha256:"))
+        self.assertTrue(
+            {"knowledge-graph", "error-triage", "vault-maintenance"}.issubset(skill_ids)
+        )
+
+    def test_runtime_combines_multiple_skill_directories(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            first = root / "first"
+            second = root / "second"
+            _write_skill(first, "alpha", "Alpha tasks.", "# Alpha")
+            _write_skill(second, "beta", "Beta tasks.", "# Beta")
+
+            runtime = SkillRuntime([first, second])
+
+            self.assertEqual(
+                {item["skill_id"] for item in runtime.list_skills()["skills"]},
+                {"alpha", "beta"},
+            )
+            self.assertEqual(
+                runtime.list_skills()["skills_dirs"],
+                [str(first.resolve()), str(second.resolve())],
+            )
 
     def test_load_skills_returns_full_codex_style_context(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -208,6 +231,9 @@ class RuntimeTests(unittest.TestCase):
         self.assertIn("维护够轻", text)
         self.assertIn("skill_id: obsidian-note-router", text)
         self.assertIn("skill_id: obsidian-vault-governance", text)
+        self.assertIn("skill_id: knowledge-graph", text)
+        self.assertIn("skill_id: error-triage", text)
+        self.assertIn("skill_id: vault-maintenance", text)
 
     def test_prompt_builder_requires_placeholder(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -344,7 +370,7 @@ class RuntimeTests(unittest.TestCase):
     def test_skill_eval_file_passes(self) -> None:
         report = evaluate_file(Path("evals/skill_queries.jsonl"))
         self.assertEqual(report["failed"], 0)
-        self.assertEqual(report["passed"], 2)
+        self.assertEqual(report["passed"], 3)
 
 
 if __name__ == "__main__":

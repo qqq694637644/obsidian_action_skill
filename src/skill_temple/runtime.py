@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import os
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
 from importlib import resources
 from pathlib import Path
@@ -45,23 +46,39 @@ class Skill:
 
 
 def load_runtime(skills_dir: str | Path | None = None) -> SkillRuntime:
-    return SkillRuntime(_resolve_skills_dir(skills_dir))
+    return SkillRuntime(_resolve_skills_dirs(skills_dir))
 
 
-def _resolve_skills_dir(skills_dir: str | Path | None) -> Path:
+def _resolve_skills_dirs(skills_dir: str | Path | None) -> list[Path]:
     if skills_dir:
-        return Path(skills_dir).expanduser().resolve()
+        return [Path(skills_dir).expanduser().resolve()]
+
+    configured_many = env_value_from_environment_or_dotenv("SKILL_TEMPLE_SKILLS_DIRS")
+    if configured_many:
+        roots = [
+            Path(value).expanduser().resolve()
+            for value in configured_many.split(os.pathsep)
+            if value.strip()
+        ]
+        if roots:
+            return roots
 
     configured = env_value_from_environment_or_dotenv("SKILL_TEMPLE_SKILLS_DIR")
     if configured:
-        return Path(configured).expanduser().resolve()
+        return [Path(configured).expanduser().resolve()]
 
     local = Path.cwd() / "skills"
     if local.is_dir():
-        return local.resolve()
+        return [local.resolve()]
 
     with resources.as_file(resources.files("skill_temple") / "example_skills") as path:
-        return path.resolve()
+        roots = [path.resolve()]
+
+    repository_root = Path(__file__).resolve().parents[2]
+    learning_skills = repository_root / "learning_engine" / "vault" / ".claude" / "skills"
+    if learning_skills.is_dir():
+        roots.append(learning_skills.resolve())
+    return roots
 
 
 def env_value_from_environment_or_dotenv(name: str) -> str | None:
@@ -136,21 +153,32 @@ def _render_skill_context(skill: Skill, contents: str) -> str:
 class SkillRuntime:
     """Discover Skill metadata, load selected entrypoints, and read referenced files."""
 
-    def __init__(self, skills_dir: str | Path):
-        self.skills_dir = Path(skills_dir).expanduser().resolve()
-        if not self.skills_dir.is_dir():
-            raise FileNotFoundError(f"Skills directory does not exist: {self.skills_dir}")
+    def __init__(self, skills_dir: str | Path | Iterable[str | Path]):
+        raw_roots = [skills_dir] if isinstance(skills_dir, (str, Path)) else list(skills_dir)
+        self.skill_dirs = tuple(
+            dict.fromkeys(Path(root).expanduser().resolve() for root in raw_roots)
+        )
+        if not self.skill_dirs:
+            raise FileNotFoundError("No Skills directories were configured.")
+        for root in self.skill_dirs:
+            if not root.is_dir():
+                raise FileNotFoundError(f"Skills directory does not exist: {root}")
+        self.skills_dir = self.skill_dirs[0]
         self._skills = self._load_skills()
 
     def _load_skills(self) -> dict[str, Skill]:
         skills: dict[str, Skill] = {}
         manifests = sorted(
-            path
-            for path in self.skills_dir.rglob("SKILL.md")
-            if not any(
-                part.startswith(".") or part == "__pycache__"
-                for part in path.relative_to(self.skills_dir).parts
-            )
+            (
+                path
+                for root in self.skill_dirs
+                for path in root.rglob("SKILL.md")
+                if not any(
+                    part.startswith(".") or part == "__pycache__"
+                    for part in path.relative_to(root).parts
+                )
+            ),
+            key=lambda path: str(path),
         )
         for manifest in manifests:
             text = manifest.read_text(encoding="utf-8", errors="replace")
@@ -177,6 +205,7 @@ class SkillRuntime:
     def list_skills(self) -> dict[str, Any]:
         return {
             "skills_dir": str(self.skills_dir),
+            "skills_dirs": [str(path) for path in self.skill_dirs],
             "skills": [
                 {
                     "skill_id": skill.skill_id,

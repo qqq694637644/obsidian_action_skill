@@ -1,12 +1,14 @@
 # Obsidian Action Skill
 
-本仓库基于 Skill Temple，把 Codex 的 Skill 思路适配到面向 Obsidian 个人知识管理的 Custom GPT Actions：
+本仓库基于 Skill Temple，把 Codex 的 Skill 思路适配到面向 Obsidian 个人知识管理和自适应学习的 Custom GPT Actions：
 
 1. 构建时把每个 Skill 的 `name + description + skill_id` 编译进 GPT Instructions。
 2. 模型在初始上下文中看到 Skill 目录，自行选择需要的 Skill。
 3. 选中后调用 `loadSkills`，只加载对应的完整 `SKILL.md`。
 4. `SKILL.md` 引用的其他文件再通过 `readSkillContent` 按需读取。
 5. 实际 vault 读取、修改和必要命令执行由 Workspace Actions 完成。
+
+仓库现在同时包含 `learning_engine/`：原 `obsidian-learning-engine` 的完整知识图谱、FSRS、FIRe、错题诊断、学习 Cockpit 和示例 vault。它原有的 `knowledge-graph`、`error-triage`、`vault-maintenance` Skills 会与通用 Obsidian Skills 一起由同一个 Action 网关加载。
 
 不会把所有 Skill 正文静态塞进 prompt，也不需要先调用 Action 查询目录。
 
@@ -25,7 +27,30 @@
 | `workspaceApplyPatch` | `POST /v1/workspace/apply-patch` | 应用多文件文本补丁 |
 | `workspaceCommand` | `POST /v1/workspace/command` | 异步运行 PowerShell 7 命令 |
 
-## Skill 目录
+## 集成结构
+
+```text
+obsidian_action_skill/
+├─ src/skill_temple/                 GPT Action 网关与通用 Obsidian Skills
+├─ learning_engine/
+│  ├─ docs/                          学习引擎手册
+│  ├─ automation/                    可选自动化
+│  └─ vault/
+│     ├─ .claude/skills/             原有学习 Skills
+│     ├─ .engine/                     prerequisite edge store
+│     ├─ .obsidian/                   示例 vault 配置与 SRS 状态
+│     └─ *.py                         FSRS/FIRe/诊断/Cockpit
+└─ GPT_ACTION_PROMPT.md
+```
+
+默认从源码仓库运行时，运行时会合并加载：
+
+1. `src/skill_temple/example_skills/`
+2. `learning_engine/vault/.claude/skills/`
+
+因此不需要复制或重写学习 Skills。
+
+## Skill 目录格式
 
 ```text
 skills/
@@ -162,12 +187,14 @@ skill-temple-build-openapi `
 
 ```dotenv
 SKILL_TEMPLE_SERVER_URL=https://skills.example.com
-SKILL_TEMPLE_SKILLS_DIR=C:/path/to/project/skills
+# 默认留空：加载内置 Obsidian Skills 和仓库内 Learning Engine Skills
+# SKILL_TEMPLE_SKILLS_DIR=C:/path/to/custom/skills
+# 多根目录可使用 SKILL_TEMPLE_SKILLS_DIRS（Windows 用 ; 分隔）
 SKILL_TEMPLE_BEARER_TOKEN=replace-with-a-long-random-secret
 SKILL_TEMPLE_OPENAPI_OUTPUT=openapi.json
-WORKSPACE_ROOT=C:/path/to/project/workspace
+WORKSPACE_ROOT=C:/path/to/obsidian_action_skill/learning_engine
 WORKSPACE_PWSH_PATH=pwsh
-WORKSPACE_OPERATION_ROOT=C:/path/to/project/.runtime/workspace-operations
+WORKSPACE_OPERATION_ROOT=C:/path/to/obsidian_action_skill/.runtime/workspace-operations
 WORKSPACE_ALLOW_NETWORK=false
 WORKSPACE_COMMAND_TIMEOUT_SECONDS=120
 WORKSPACE_COMMAND_MAX_TIMEOUT_SECONDS=3600
@@ -181,7 +208,9 @@ Skill 目录查找顺序：
 2. `SKILL_TEMPLE_SKILLS_DIR`
 3. 当前目录 `.env`
 4. 当前目录的 `skills/`
-5. 包内示例 Skill
+5. 包内示例 Skill；从本仓库源码运行时，同时加载 `learning_engine/vault/.claude/skills`
+
+`SKILL_TEMPLE_SKILLS_DIRS` 可显式配置多个根目录；一旦设置，它优先于单目录配置。
 
 设置 `SKILL_TEMPLE_BEARER_TOKEN` 后，所有 `/v1/*` 接口以及控制台的加载、读取请求都要求：
 
@@ -197,6 +226,16 @@ Authorization: Bearer <token>
 py -3 -m pip install -e ".[dev]"
 skill-temple --host 127.0.0.1 --port 8765
 ```
+
+学习引擎的快速验证：
+
+```powershell
+Set-Location learning_engine/vault
+python scripts/verify_engine.py
+python morning.py
+```
+
+在 Obsidian 中打开 `learning_engine/vault/`。通过 GPT Action 操作时，把 `WORKSPACE_ROOT` 指向 `learning_engine/`，这样同一网关既能读取 `docs/`，也能在 `vault/` 内执行学习引擎命令。
 
 OpenAPI：
 
