@@ -1,2 +1,3 @@
 {"id":"obsidian-note-router-routing","query":"把一条会议记录放进个人 Obsidian，并判断追加还是新建","expected_skill":"obsidian-note-router","expected_paths":["references/routing-matrix.md"],"expected_symbols":["单次会议纪要","meeting note","追加 vs 新建"]}
 {"id":"obsidian-vault-governance-boundaries","query":"规划文件夹、属性、Bases 与 Canvas 的职责边界","expected_skill":"obsidian-vault-governance","expected_paths":["references/feature-boundaries.md"],"expected_symbols":["Markdown note","Bases","唯一事实来源"]}
+{"id":"learning-knowledge-graph-routing","query":"把一个新学科拆成技能节点并建立前置知识图谱","expected_skill":"knowledge-graph","expected_paths":["references/tmua-vault-case-study.md"],"expected_symbols":["observable subskills","HARD_PREREQ","Validate DAG","Flow zone"]}

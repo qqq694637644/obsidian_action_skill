@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "title": "Personal Learning OS",
+  "subject": "Personal Knowledge",
+  "weekly_hours": 5,
+  "session_minutes": 60,
+  "default_courses": [
+    "personal"
+  ],
+  "profiles": {
+    "personal": {
+      "label": "Personal Learning",
+      "question_code": "personal",
+      "target_inclusions": [],
+      "target_exclusions": []
+    }
+  },
+  "question_banks": [],
+  "mastery_gate": {
+    "target_proficient_pct": 100,
+    "target_mastered_pct": 95,
+    "timed_average_pct": 85,
+    "domain_floor_pct": 75,
+    "proficient_delay_days": 3,
+    "mastered_delay_days": 7,
+    "error_clear_days": 14
+  }
+}

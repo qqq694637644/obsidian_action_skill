@@ -245,8 +245,8 @@ def register_workspace_actions(app: FastAPI) -> None:
         response_model=WorkspaceCommandResponse,
         summary="Start or manage a PowerShell workspace command.",
         description=(
-            "Start, inspect, read logs from, list, or cancel an asynchronous pwsh 7 "
-            "command running in WORKSPACE_ROOT."
+            "Use for tests, builds, engine scripts, and diagnostics—not text editing. Commands are "
+            "asynchronous: start returns an operation, then get/logs until a terminal state."
         ),
         openapi_extra={"x-openai-isConsequential": False},
     )
@@ -295,8 +295,8 @@ def register_workspace_actions(app: FastAPI) -> None:
         response_model=WorkspaceInspectResponse,
         summary="Inspect workspace tree, search matches, and file snippets.",
         description=(
-            "Inspect paths under WORKSPACE_ROOT, search with ripgrep, and read bounded "
-            "snippets from matching UTF-8 files."
+            "First-pass discovery for an unknown area. Returns a bounded tree, optional ripgrep "
+            "results, and selected UTF-8 snippets; tree or response may be truncated."
         ),
         openapi_extra={"x-openai-isConsequential": False},
     )
@@ -314,8 +314,8 @@ def register_workspace_actions(app: FastAPI) -> None:
         response_model=WorkspaceSearchResponse,
         summary="Search workspace text with ripgrep.",
         description=(
-            "Search selected paths with literal or regular-expression matching and return "
-            "bounded line/context results."
+            "Use when the target text or pattern is known. Returns bounded line/context matches, "
+            "match_count, and truncated; invalid paths or missing rg return structured errors."
         ),
         openapi_extra={"x-openai-isConsequential": False},
     )
@@ -333,8 +333,8 @@ def register_workspace_actions(app: FastAPI) -> None:
         response_model=WorkspaceReadFilesResponse,
         summary="Read multiple UTF-8 workspace files with line numbers.",
         description=(
-            "Read selected files from WORKSPACE_ROOT with line numbers, hashes, metadata, "
-            "and response truncation limits."
+            "Read known paths with numbered content, SHA-256, metadata, per-file errors, and "
+            "next_start_line for continuation when a file is truncated."
         ),
         openapi_extra={"x-openai-isConsequential": False},
     )
@@ -354,8 +354,8 @@ def register_workspace_actions(app: FastAPI) -> None:
         response_model=WorkspaceWriteFileResponse,
         summary="Write one UTF-8 text file.",
         description=(
-            "Create or overwrite a text file with mode, SHA-256, line-ending, dry-run, "
-            "and output-size controls."
+            "Create a new text file or fully replace one file. Supports create-only, overwrite, "
+            "SHA-256-guarded overwrite, dry-run, line endings, and conflict errors."
         ),
         openapi_extra={"x-openai-isConsequential": False},
     )
@@ -376,8 +376,8 @@ def register_workspace_actions(app: FastAPI) -> None:
         response_model=WorkspaceApplyPatchResponse,
         summary="Apply a controlled Codex text patch.",
         description=(
-            "Apply Begin Patch/Add File/Update File/Delete File text patches with dry-run "
-            "and rollback on failure."
+            "Preferred for local or multi-file text edits. Supports add/update/delete patches, "
+            "dry-run, changed-file stats, rollback on failure, and explicit allow_delete."
         ),
         openapi_extra={"x-openai-isConsequential": False},
     )

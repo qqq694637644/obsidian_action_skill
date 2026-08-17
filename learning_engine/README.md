@@ -1,0 +1,123 @@
+# Obsidian Learning Engine
+
+A self-hosted, Math Academy-style learning system built on Obsidian + plain Python.
+Model any subject as a **prerequisite knowledge graph**, track mastery per sub-skill,
+schedule reviews with **FSRS**, get implicit review credit through the graph (**FIRe**),
+and let a daily **flow-zone** ranker tell you exactly what to study next.
+
+Built and battle-tested on a real A-Level Maths + Further Maths vault
+(~900 notes, 1,500+ AI-mined prerequisite edges), then generalized so anyone —
+human or AI agent — can replicate it for any subject.
+
+## What you get
+
+1. **Knowledge graph** — one note per skill, lettered sub-skill checkboxes, typed
+   prerequisite edges (`HARD_PREREQ` / `SOFT_PREREQ` / `IMPLICIT_REVIEW`), colored
+   Obsidian graph where mastery always wins visually.
+2. **Flow-zone diagnostic** — daily report of what is *just-right difficulty*:
+   skills whose hard prerequisites you know but which you haven't mastered.
+3. **FSRS v6 + chain-weighted FIRe** — modern spaced repetition, zero dependencies,
+   plus fractional implicit review: practicing a skill boosts the stability of its
+   prerequisite ancestors, so you review old material by learning new material.
+4. **Error capture + triage** — log a mistake in ~5 seconds mid-session; batch-analyse
+   with an AI agent later (classify, root-cause via the graph, update weak spots).
+5. **Micro-schema fluency trainer** — CCT-style timed drills for automaticity,
+   bridged to the graph so the daily plan suggests the right drills.
+6. **Past-paper pipeline** (optional) — turn a folder of exam PDFs into a topic-tagged
+   question bank: per-node practice notes with rendered question images, folded answers,
+   and printable booklets. Bring your own PDFs; the pipeline is subject-agnostic.
+7. **Course overlays** — map several syllabuses or admission tests onto one canonical
+   graph, so shared skills keep one mastery/FSRS state while course-specific skills
+   extend the DAG without duplication.
+8. **Local Learning Cockpit** — a keyboard-first localhost GUI for deadline planning,
+   guided review/practice, timed sets, subskill updates, and explainable causal
+   remediation of off-syllabus prerequisite gaps. Its config-driven adapters
+   support subject-specific error taxonomies and multidimensional rubrics for
+   practical work, essays, data responses, and other non-binary assessments.
+
+## Quickstart (5 minutes)
+
+```bash
+git clone https://github.com/qqq694637644/obsidian_action_skill
+cd obsidian_action_skill/learning_engine/vault
+python scripts/verify_engine.py # verify structure + synthetic engine behavior
+python morning.py               # clean Vault: zero items until your graph exists
+python cockpit_app.py            # open the private local GUI
+```
+
+This engine is integrated with the repository's GPT Action gateway. From the
+repository root, install and start the gateway, set `WORKSPACE_ROOT` to
+your personal Workspace, and leave the bundled Skill directory enabled. The gateway
+compiles `knowledge-graph`, `error-triage`, and `vault-maintenance` metadata into
+GPT Instructions and loads each full Skill only when the request matches it.
+
+Open the `vault/` folder in Obsidian, install the **Dataview** community plugin when
+prompted, and read `START_HERE.md`. The Vault is intentionally clean: no demo
+subject, no inherited mastery, no review history, and no fallback question bank.
+
+**The core engine and cockpit are pure Python standard library.** No pip installs, no accounts,
+no cloud. (Only the optional past-paper pipeline needs `pip install pymupdf`.)
+
+To build your own subject, see [GETTING_STARTED.md](GETTING_STARTED.md).
+
+## How it fits together
+
+```
+curriculum source ──extract──▶ skill notes (one .md per skill, checkbox subskills)
+                                    │
+                     AI batch mining▼
+                    prerequisite edges (.engine/prerequisite_edges.json)
+                                    │
+        ┌────────────┬──────────────┼───────────────┬─────────────┐
+        ▼            ▼              ▼               ▼             ▼
+   graph colors   flow-zone     FSRS + FIRe     unlock-      practice
+   (Obsidian)     diagnostic    scheduling      leverage     material
+                       └────────────┴───────────────┘
+                                    ▼
+                         study_today.py / morning.py
+                       "here is exactly what to study"
+```
+
+## Repository layout
+
+```
+docs/            the full handbook (architecture → build pipeline → engine → pitfalls)
+vault/           the clean personal vault — open this in Obsidian; scripts live inside it
+automation/      optional hourly SRS watcher + scheduler setup
+```
+
+The cockpit walkthrough is at
+[`vault/LEARNING_COCKPIT_WALKTHROUGH.md`](vault/LEARNING_COCKPIT_WALKTHROUGH.md).
+To install the same cockpit across different subject vaults, see
+[`docs/11-subject-adapters.md`](docs/11-subject-adapters.md).
+
+Start with `docs/01-architecture.md`, then use
+[`docs/09-course-overlays-and-learning-guide.md`](docs/09-course-overlays-and-learning-guide.md)
+for the actual daily loop and multi-course design. Agent behavior is defined by the
+gateway's compiled root prompt and the bundled on-demand Skills, not by a second
+prompt inside the personal Vault.
+Ideas on the roadmap (and honest analyses of rejected ones, like two-way Anki sync):
+[FUTURE_IMPROVEMENTS.md](FUTURE_IMPROVEMENTS.md).
+
+## Design lineage & attribution
+
+- **FSRS** — the scheduler is a from-scratch port of FSRS v6 by the
+  [open-spaced-repetition](https://github.com/open-spaced-repetition) project (Jarrett Ye et al.).
+- **FIRe (Fractional Implicit Repetition)** — concept from
+  [Math Academy](https://www.mathacademy.com) / Justin Skycak's writing on their
+  learning engine. This project is *inspired by* Math Academy and is **not affiliated
+  with it**; the chain-weighted implementation here also draws on the open
+  `plcourse` fractional-credit DAG design.
+- **Marble Skill Taxonomy** ([withmarbleapp/os-taxonomy](https://github.com/withmarbleapp/os-taxonomy),
+  ODbL/CC BY-SA) — used as the schema benchmark for what a healthy production
+  knowledge graph looks like (see `docs/08-case-studies.md`).
+
+## Content policy
+
+This repo contains **no bundled curriculum or exam content** — no exam-board
+questions, no scraped course data, and no demo question bank. The past-paper
+pipeline is code only: you point it at PDFs you have the right to use.
+
+## License
+
+MIT — see [LICENSE](LICENSE).

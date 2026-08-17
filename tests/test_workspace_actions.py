@@ -49,6 +49,19 @@ class WorkspaceActionsTests(unittest.TestCase):
                 self.assertIs(operation["x-openai-isConsequential"], False)
                 self.assertLessEqual(len(operation.get("description", "")), 300)
 
+        descriptions = {
+            operation["operationId"]: operation["description"]
+            for path, path_item in schema["paths"].items()
+            if path.startswith("/v1/workspace/")
+            for operation in path_item.values()
+        }
+        self.assertIn("asynchronous", descriptions["workspaceCommand"])
+        self.assertIn("First-pass discovery", descriptions["workspaceInspect"])
+        self.assertIn("match_count", descriptions["workspaceSearch"])
+        self.assertIn("next_start_line", descriptions["workspaceReadFiles"])
+        self.assertIn("SHA-256", descriptions["workspaceWriteFile"])
+        self.assertIn("rollback", descriptions["workspaceApplyPatch"])
+
     def test_missing_workspace_root_is_structured(self) -> None:
         with patch.dict(os.environ, {}, clear=True):
             client = TestClient(create_app())

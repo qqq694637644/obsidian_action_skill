@@ -258,7 +258,10 @@ def create_app(skills_dir: str | Path | None = None, server_url: str | None = No
         response_model=LoadSkillsResponse,
         responses={404: {"model": StructuredErrorResponse}},
         summary="Load selected Skills.",
-        description="Load complete SKILL.md files for exact ids selected from GPT Instructions.",
+        description=(
+            "Load complete SKILL.md files for exact catalog ids. Returns content, hash, and "
+            "referenced_paths for each Skill; unknown ids return skill_not_found."
+        ),
         openapi_extra={"x-openai-isConsequential": False},
     )
     def load_skills(request: LoadSkillsRequest) -> LoadSkillsResponse:
@@ -276,7 +279,10 @@ def create_app(skills_dir: str | Path | None = None, server_url: str | None = No
         response_model=ReadSkillContentResponse,
         responses={404: {"model": StructuredErrorResponse}},
         summary="Read a file from a selected Skill.",
-        description="Read an exact relative path from a selected Skill with line continuation.",
+        description=(
+            "Read an exact Skill-relative file slice. Returns numbered content, hash, truncation, "
+            "and next_start_line; unsafe or missing paths return unsafe_or_missing_path."
+        ),
         openapi_extra={"x-openai-isConsequential": False},
     )
     def read_skill_content(request: ReadSkillContentRequest) -> ReadSkillContentResponse:

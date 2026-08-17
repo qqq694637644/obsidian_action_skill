@@ -56,11 +56,36 @@ class RuntimeTests(unittest.TestCase):
     def test_packaged_example_is_discovered(self) -> None:
         runtime = load_runtime()
         skills = runtime.list_skills()["skills"]
+        skill_ids = {item["skill_id"] for item in skills}
         example = next(
             item for item in skills if item["skill_id"] == "obsidian-note-router"
         )
         self.assertEqual(example["entrypoint"], "SKILL.md")
         self.assertTrue(example["content_hash"].startswith("sha256:"))
+        self.assertTrue(
+            {"knowledge-graph", "error-triage", "vault-maintenance"}.issubset(skill_ids)
+        )
+        self.assertEqual(len(runtime.skill_dirs), 1)
+        self.assertNotIn(".claude", str(runtime.skill_dirs[0]))
+
+    def test_runtime_combines_multiple_skill_directories(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            first = root / "first"
+            second = root / "second"
+            _write_skill(first, "alpha", "Alpha tasks.", "# Alpha")
+            _write_skill(second, "beta", "Beta tasks.", "# Beta")
+
+            runtime = SkillRuntime([first, second])
+
+            self.assertEqual(
+                {item["skill_id"] for item in runtime.list_skills()["skills"]},
+                {"alpha", "beta"},
+            )
+            self.assertEqual(
+                runtime.list_skills()["skills_dirs"],
+                [str(first.resolve()), str(second.resolve())],
+            )
 
     def test_load_skills_returns_full_codex_style_context(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -165,6 +190,25 @@ class RuntimeTests(unittest.TestCase):
             with self.assertRaisesRegex(SkillRuntimeError, "Invalid Skill name"):
                 SkillRuntime(root)
 
+    def test_skill_runtime_uses_skill_md_as_its_only_metadata_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir) / "skills"
+            _write_skill(
+                root,
+                "demo",
+                "Demo tasks.",
+                "# Demo",
+                {"agents/openai.yaml": "this: [is intentionally not parsed"},
+            )
+
+            runtime = SkillRuntime(root)
+            listed = runtime.list_skills()["skills"][0]
+
+            self.assertEqual(listed["skill_id"], "demo")
+            self.assertEqual(listed["name"], "demo")
+            self.assertEqual(listed["description"], "Demo tasks.")
+            self.assertNotIn("interface", listed)
+
     def test_prompt_builder_includes_metadata_not_skill_bodies(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp = Path(temp_dir)
@@ -191,7 +235,7 @@ class RuntimeTests(unittest.TestCase):
             self.assertIn("skill_id: alpha", text)
             self.assertNotIn("SECRET BODY", text)
 
-    def test_repository_prompt_builds_for_obsidian_personal_knowledge_management(self) -> None:
+    def test_repository_prompt_builds_for_skill_routed_workspace_agent(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             output = Path(temp_dir) / "GPT_INSTRUCTIONS.md"
             built = build_instructions(
@@ -202,12 +246,30 @@ class RuntimeTests(unittest.TestCase):
             text = built.read_text(encoding="utf-8")
 
         self.assertNotIn("{{SKILL_CATALOG}}", text)
-        self.assertIn("Obsidian 个人知识管理助手", text)
+        self.assertIn("Obsidian 工作区助手", text)
         self.assertIn("记得进去", text)
         self.assertIn("找得回来", text)
         self.assertIn("维护够轻", text)
+        self.assertIn("主动调用 `loadSkills`", text)
+        for action_name in (
+            "loadSkills",
+            "readSkillContent",
+            "workspaceInspect",
+            "workspaceSearch",
+            "workspaceReadFiles",
+            "workspaceApplyPatch",
+            "workspaceWriteFile",
+            "workspaceCommand",
+        ):
+            self.assertIn(f"`{action_name}`", text)
+        self.assertIn("<skill_catalog>", text)
         self.assertIn("skill_id: obsidian-note-router", text)
         self.assertIn("skill_id: obsidian-vault-governance", text)
+        self.assertIn("skill_id: knowledge-graph", text)
+        self.assertIn("skill_id: error-triage", text)
+        self.assertIn("skill_id: vault-maintenance", text)
+        self.assertNotIn("### Skill 路由", text)
+        self.assertNotIn("AGENTS.md", text)
 
     def test_prompt_builder_requires_placeholder(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -248,6 +310,13 @@ class RuntimeTests(unittest.TestCase):
         for path_item in schema["paths"].values():
             for operation in path_item.values():
                 self.assertIs(operation.get("x-openai-isConsequential"), False)
+
+        load_description = schema["paths"]["/v1/skills/load"]["post"]["description"]
+        read_description = schema["paths"]["/v1/skills/read"]["post"]["description"]
+        self.assertIn("referenced_paths", load_description)
+        self.assertIn("skill_not_found", load_description)
+        self.assertIn("next_start_line", read_description)
+        self.assertIn("unsafe_or_missing_path", read_description)
 
     def test_server_url_and_http_endpoints(self) -> None:
         client = TestClient(create_app())
@@ -344,7 +413,7 @@ class RuntimeTests(unittest.TestCase):
     def test_skill_eval_file_passes(self) -> None:
         report = evaluate_file(Path("evals/skill_queries.jsonl"))
         self.assertEqual(report["failed"], 0)
-        self.assertEqual(report["passed"], 2)
+        self.assertEqual(report["passed"], 3)
 
 
 if __name__ == "__main__":
